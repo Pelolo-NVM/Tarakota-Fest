@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pemesanan Tiket - Tarakota Fest 2026</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/sticker-star-yellow.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/public.css">
+</head>
+<body data-page="pemesanan">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main-content" class="public-main" tabindex="-1">
+    <section class="page-header-band">
+      <div class="container">
+        <span class="status-badge status-badge--mint">Katalog Tiket Resmi</span>
+        <h1 style="margin-top:0.5rem;">Pemesanan Tiket Tarakota Fest 2026</h1>
+        <p>Pilih kategori tiket sesuai kebutuhanmu, isi formulir checkout, dan unggah bukti transfer agar admin segera memverifikasi pesananmu.</p>
+      </div>
+      <img class="page-header-sticker" src="assets/images/sticker-seashell.svg" alt="" width="76" height="72" aria-hidden="true">
+    </section>
+
+    <section class="section-block">
+      <div class="container">
+        <div id="order-result-banner" class="alert-box" tabindex="-1" hidden></div>
+
+        <div id="event-catalog-container"></div>
+
+        <section class="lookup-panel" aria-labelledby="lookup-heading">
+          <h2 id="lookup-heading" style="margin-bottom:0.35rem;">Lacak Status Verifikasi Tiket</h2>
+          <p style="color:var(--color-ink-muted); margin-bottom:1rem;">Masukkan kode transaksi (misal <span class="mono">TRX-2026-0001</span>) atau alamat email pemesan untuk melihat status verifikasi Admin.</p>
+          <form id="ticket-lookup-form" novalidate>
+            <div class="lookup-form-row">
+              <div class="field-group">
+                <label class="field-label" for="lookup-query">Kode Transaksi / Email Pemesan</label>
+                <input class="field-input" id="lookup-query" name="query" type="text" required placeholder="TRX-2026-0001 atau rani.pesisir@example.com">
+                <span class="field-error" data-field-error="query" hidden></span>
+              </div>
+              <button type="submit" class="btn btn-secondary">Cek Status Tiket</button>
+            </div>
+          </form>
+          <div id="ticket-lookup-result" hidden></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="checkout-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="status-badge status-badge--lilac">Form Checkout &amp; Bukti Bayar</span>
+          <h2 id="checkout-modal-title" style="margin-top:0.4rem; margin-bottom:0.2rem;">Konfirmasi Pesanan Tiket</h2>
+          <p id="checkout-event-title" style="margin:0; font-weight:700;"></p>
+          <p id="checkout-event-meta" class="mono" style="margin:0.2rem 0 0; font-size:var(--text-xs); color:var(--color-ink-muted);"></p>
+        </div>
+        <button type="button" class="modal-close-btn" id="checkout-modal-close" aria-label="Tutup modal pemesanan">&times;</button>
+      </div>
+
+      <div id="checkout-api-errors" class="alert-box alert-box--error" role="alert" hidden></div>
+
+      <form id="checkout-form" enctype="multipart/form-data" novalidate>
+        <input type="hidden" id="checkout-event-id" name="eventId">
+
+        <div class="field-group">
+          <label class="field-label" for="checkout-buyer-name">Nama Lengkap Pemesan</label>
+          <input class="field-input" id="checkout-buyer-name" name="buyerName" type="text" required placeholder="Nama sesuai identitas" autocomplete="name">
+          <span class="field-error" data-field-error="buyerName" hidden></span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="checkout-buyer-email">Alamat Email</label>
+          <input class="field-input" id="checkout-buyer-email" name="buyerEmail" type="email" required placeholder="nama@email.com" autocomplete="email">
+          <span class="field-error" data-field-error="buyerEmail" hidden></span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="checkout-buyer-phone">Nomor WhatsApp / Telepon</label>
+          <input class="field-input" id="checkout-buyer-phone" name="buyerPhone" type="tel" required placeholder="081234567890" autocomplete="tel">
+          <span class="field-error" data-field-error="buyerPhone" hidden></span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="checkout-qty">Jumlah Tiket</label>
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-ghost btn-sm" id="qty-minus-btn" aria-label="Kurangi jumlah tiket">-</button>
+            <input class="field-input mono" id="checkout-qty" name="qty" type="number" min="1" max="10" value="1" style="width:90px; text-align:center;">
+            <button type="button" class="btn btn-ghost btn-sm" id="qty-plus-btn" aria-label="Tambah jumlah tiket">+</button>
+            <span class="mono" style="font-weight:700;">Total: <strong id="checkout-total-preview">Rp 0</strong></span>
+          </div>
+          <span class="field-error" data-field-error="qty" hidden></span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="checkout-proof-file">Upload Bukti Transfer (PNG, JPG, WEBP maks 2 MB)</label>
+          <p class="field-help" style="margin-bottom:0.5rem;">Transfer ke Rekening Bank Tarakota Mandiri <strong>140-002-026-8888</strong> a.n. Yayasan Tarakota Fest.</p>
+          <div class="dropzone" id="proof-dropzone">
+            <input id="checkout-proof-file" name="proofFile" type="file" accept="image/png,image/jpeg,image/webp">
+            <p style="margin:0; font-size:var(--text-sm); color:var(--color-ink-muted);">Tarik &amp; lepas file gambar di area ini, atau klik input file di atas.</p>
+          </div>
+          <div id="proof-preview-box" style="margin-top:0.75rem;" hidden>
+            <img id="proof-preview-img" class="dropzone-preview" src="" alt="Pratinjau bukti transfer">
+            <p id="proof-file-name" class="mono" style="margin:0.35rem 0; font-size:var(--text-xs);"></p>
+            <button type="button" class="btn btn-ghost btn-sm" id="remove-proof-btn">Ganti Bukti Transfer</button>
+          </div>
+          <span class="field-error" data-field-error="proofFile" hidden></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="checkout-submit-btn" style="width:100%;">Kirim Pesanan &amp; Bukti Bayar</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/pages/tickets.js"></script>
+</body>
+</html>
+

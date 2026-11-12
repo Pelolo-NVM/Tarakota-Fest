@@ -1,0 +1,10 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct web access to configuration, SQL schema, and design exports
+    RewriteRule ^(?:config|database|TarakotaFestCSV)(?:/|$) - [F,L]
+    RewriteRule \.(?:sql|ini|log|env|example|md)$ - [F,L]
+</IfModule>

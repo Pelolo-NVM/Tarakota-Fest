@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" width="640" height="420" role="img" aria-label="Ilustrasi panggung pesisir Tarakota Fest">
+  <rect width="640" height="420" rx="16" fill="#F5EFE6" stroke="#292524" stroke-width="4"/>
+  <circle cx="490" cy="115" r="56" fill="#FFB38A" stroke="#292524" stroke-width="4"/>
+  <path d="M40 275 Q 160 225, 290 270 T 600 260 L 600 380 L 40 380 Z" fill="#6EE7B7" stroke="#292524" stroke-width="4"/>
+  <path d="M40 315 Q 170 285, 320 318 T 600 308 L 600 380 L 40 380 Z" fill="#D8B4FE" stroke="#292524" stroke-width="4"/>
+  <rect x="86" y="130" width="250" height="145" rx="12" fill="#FDFBF7" stroke="#292524" stroke-width="4"/>
+  <text x="211" y="196" text-anchor="middle" fill="#292524" font-family="'Fredoka', sans-serif" font-weight="700" font-size="24">STAGE VISUAL SLOT</text>
+  <text x="211" y="228" text-anchor="middle" fill="#57534E" font-family="'JetBrains Mono', monospace" font-size="14">[ASSET PLACEHOLDER FIGMA]</text>
+</svg>
+

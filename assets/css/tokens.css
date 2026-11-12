@@ -1,0 +1,87 @@
+/* Tarakota Fest Design Tokens
+ * Ready to sync with Figma CSV variable export.
+ */
+:root {
+  /* Core Surfaces & Ink */
+  --color-bg-sand: #FDFBF7;
+  --color-surface-warm: #F3EDE4;
+  --color-surface-card: #FAF6EE;
+  --color-ink-espresso: #292524;
+  --color-ink-muted: #57534E;
+  --color-ink-subtle: #71675F;
+  --color-border-ink: #292524;
+  --color-border-muted: #B7ACA1;
+  --color-border-soft: #DCD2C8;
+  --color-track: #E6DED3;
+
+  /* Tropical Y2K Pastel Accents */
+  --color-accent-tangerine: #FFB38A;
+  --color-accent-mint: #6EE7B7;
+  --color-accent-lilac: #D8B4FE;
+  --color-accent-butter: #FDE9A9;
+  --color-accent-sun: #FFF0AA;
+
+  /* Figma Section & Card Pastels */
+  --color-card-lilac: #EDE0FA;
+  --color-card-peach: #FFE4D4;
+  --color-card-mint: #E0F5EB;
+
+  /* Semantic Status Colors (Figma pastel tokens paired with dark espresso ink) */
+  --color-status-paid-bg: #6EE7B7;
+  --color-status-pending-bg: #FFE6A0;
+  --color-status-rejected-bg: #F7C7C1;
+  --color-status-rejected-border: #AA5B53;
+  --color-status-info-bg: #EADFF4;
+  --color-error-bg: #FDECEB;
+
+  /* Typography */
+  --font-display: 'Fredoka', 'Arial Rounded MT Bold', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Fluid Type Scale */
+  --text-xs: 0.78rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.15rem;
+  --text-xl: clamp(1.25rem, 2vw, 1.5rem);
+  --text-2xl: clamp(1.6rem, 3vw, 2.25rem);
+  --text-hero: clamp(2.25rem, 5vw, 3.75rem);
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+  --space-10: 4rem;
+
+  /* Radii Hierarchy (varied by role, not uniform pills) */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+
+  /* Borders & Sticker Elevation */
+  --border-thin: 1.5px solid var(--color-border-ink);
+  --border-thick: 2.5px solid var(--color-border-ink);
+  --shadow-sticker: 4px 4px 0 var(--color-border-ink);
+  --shadow-sticker-sm: 2px 2px 0 var(--color-border-ink);
+
+  /* Liquid Glassmorphism Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-bg-soft: rgba(255, 255, 255, 0.48);
+  --glass-bg-strong: rgba(255, 255, 255, 0.62);
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-blur-heavy: blur(22px) saturate(175%);
+  --glass-inner-border: 1.5px solid rgba(255, 255, 255, 0.84);
+  --glass-specular: inset 0 1.5px 1px rgba(255, 255, 255, 0.92), inset 0 -1px 2px rgba(41, 37, 36, 0.06);
+  --glass-shadow: 0 12px 32px rgba(41, 37, 36, 0.08);
+
+  /* Layout */
+  --container-max: 1180px;
+  --navbar-height: 76px;
+}
+

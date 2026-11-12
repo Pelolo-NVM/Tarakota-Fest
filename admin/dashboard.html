@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - Tarakota Fest 2026</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/images/sticker-star-yellow.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body data-page="admin-dashboard">
+  <div class="admin-shell">
+    <header class="admin-shell-topbar">
+      <div class="admin-topbar-left">
+        <button type="button" class="btn btn-ghost btn-sm admin-mobile-toggle" id="admin-mobile-toggle" aria-expanded="false" aria-controls="admin-sidebar">Menu Admin</button>
+        <img src="../assets/images/tarakota-logo.svg" alt="Tarakota Fest" width="84" height="50">
+        <div>
+          <span class="status-badge status-badge--lilac">Backoffice Workspace</span>
+          <h1 id="admin-page-title" style="margin:0.2rem 0 0; font-size:var(--text-xl);">Ringkasan Analitik Festival</h1>
+        </div>
+      </div>
+      <div class="admin-topbar-actions">
+        <button type="button" class="btn btn-ghost btn-sm btn-admin-outline" id="admin-refresh-btn">Sinkronkan Data</button>
+        <button type="button" class="btn btn-secondary btn-sm btn-admin-primary" id="topbar-add-event-btn">+ Tambah Event</button>
+      </div>
+    </header>
+
+    <div class="admin-workspace-body">
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Navigasi Sidebar Dashboard Admin">
+        <div>
+          <div class="admin-brand">
+            <div class="admin-brand-title">Tarakota Backoffice</div>
+            <div class="mono" id="admin-user-email" style="font-size:var(--text-xs); color:var(--color-ink-muted);">Memuat sesi...</div>
+          </div>
+
+          <nav class="admin-nav">
+            <button type="button" class="admin-nav-btn" data-admin-tab="overview" aria-current="page">
+              <span>1. Ringkasan Analitik</span>
+            </button>
+            <button type="button" class="admin-nav-btn" data-admin-tab="events" aria-current="false">
+              <span>2. Manajemen Event</span>
+            </button>
+            <button type="button" class="admin-nav-btn" data-admin-tab="transactions" aria-current="false">
+              <span>3. Verifikasi Transaksi</span>
+              <span class="admin-nav-count" id="badge-pending-trx">0</span>
+            </button>
+            <button type="button" class="admin-nav-btn" data-admin-tab="bands" aria-current="false">
+              <span>4. Kurasi Band</span>
+              <span class="admin-nav-count" id="badge-pending-bands">0</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="admin-sidebar-footer">
+          <a class="btn btn-ghost btn-sm btn-admin-outline" href="../index.html">Lihat Sisi Publik</a>
+          <button type="button" class="btn btn-danger btn-sm" id="admin-logout-btn">Keluar (Logout)</button>
+        </div>
+      </aside>
+
+      <main class="admin-main" id="admin-main-content" tabindex="-1">
+        <!-- Menu 1: Ringkasan Analitik -->
+        <section data-admin-panel="overview">
+          <div class="metrics-grid" id="admin-metrics-grid"></div>
+          <div id="admin-progress-summary"></div>
+          <h2 style="font-size:var(--text-lg); margin-bottom:0.75rem;">Antrean Verifikasi Transaksi Terbaru</h2>
+          <div id="admin-recent-pending"></div>
+        </section>
+
+        <!-- Menu 2: Manajemen Event CRUD -->
+        <section data-admin-panel="events" hidden>
+          <div class="table-toolbar">
+            <div>
+              <h2 style="margin-bottom:0.2rem;">Katalog Kategori Tiket &amp; Kuota</h2>
+              <p style="margin:0; color:var(--color-ink-muted); font-size:var(--text-sm);">Tambah event, ubah kuota/harga, cari katalog, atau arsipkan event tanpa menghapus riwayat transaksi (Soft Delete).</p>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:0.75rem;">
+              <div class="field-group" style="margin-bottom:0; min-width:210px;">
+                <label class="field-label" for="event-search-input">Cari Event</label>
+                <input class="field-input" id="event-search-input" type="search" placeholder="Kode, nama, kategori...">
+              </div>
+              <div class="field-group" style="margin-bottom:0; min-width:170px;">
+                <label class="field-label" for="event-status-filter">Status Event</label>
+                <select class="field-select" id="event-status-filter">
+                  <option value="ALL">Semua Status</option>
+                  <option value="active">Active</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-primary" id="add-event-btn">+ Tambah Event</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Nama Event</th>
+                  <th>Kategori</th>
+                  <th>Harga</th>
+                  <th>Sisa / Total Kuota</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-events-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-bar" id="admin-events-pagination" hidden></div>
+        </section>
+
+        <!-- Menu 3: Verifikasi Transaksi -->
+        <section data-admin-panel="transactions" hidden>
+          <div class="table-toolbar">
+            <div>
+              <h2 style="margin-bottom:0.2rem;">Verifikasi Bukti Transfer Pemesan</h2>
+              <p style="margin:0; color:var(--color-ink-muted); font-size:var(--text-sm);">Periksa bukti transfer unggahan publik lalu setujui (Paid) atau tolak (Rejected) untuk mengembalikan kuota.</p>
+            </div>
+            <div class="field-group" style="margin-bottom:0; min-width:210px;">
+              <label class="field-label" for="trx-status-filter">Filter Status Transaksi</label>
+              <select class="field-select" id="trx-status-filter">
+                <option value="ALL">Semua Status</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Kode &amp; Waktu</th>
+                  <th>Pemesan</th>
+                  <th>Event</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-trx-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-bar" id="admin-trx-pagination" hidden></div>
+        </section>
+
+        <!-- Menu 4: Manajemen Kurasi Band -->
+        <section data-admin-panel="bands" hidden>
+          <div class="table-toolbar">
+            <div>
+              <h2 style="margin-bottom:0.2rem;">Kurasi Audisi Band</h2>
+              <p style="margin:0; color:var(--color-ink-muted); font-size:var(--text-sm);">Dengarkan demo lagu dan terima band terpilih untuk langsung masuk ke jadwal manggung publik.</p>
+            </div>
+            <div class="field-group" style="margin-bottom:0; min-width:210px;">
+              <label class="field-label" for="band-status-filter">Filter Status Band</label>
+              <select class="field-select" id="band-status-filter">
+                <option value="ALL">Semua Status</option>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Kode</th>
+                  <th>Nama Band</th>
+                  <th>Genre &amp; Kota</th>
+                  <th>Demo Lagu</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-bands-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-bar" id="admin-bands-pagination" hidden></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit Event -->
+  <div class="modal-backdrop" id="event-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="event-modal-title" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="event-modal-title" style="margin:0;">Tambah Event Baru</h2>
+        <button type="button" class="modal-close-btn" id="event-modal-close" aria-label="Tutup modal event">&times;</button>
+      </div>
+      <div id="event-form-error" class="alert-box alert-box--error" role="alert" hidden></div>
+      <form id="event-crud-form" novalidate>
+        <input type="hidden" name="id">
+        <div class="field-group">
+          <label class="field-label" for="evt-title">Nama Event / Kategori Tiket</label>
+          <input class="field-input" id="evt-title" name="title" type="text" required placeholder="Contoh: VIP Sunset Cabana Pass">
+          <span class="field-error" data-field-error="title" hidden></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="evt-category">Label Kategori</label>
+          <input class="field-input" id="evt-category" name="category" type="text" required placeholder="Contoh: 3-Day Pass, Daily Pass, VIP Pass">
+          <span class="field-error" data-field-error="category" hidden></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="evt-date">Label Tanggal Pelaksanaan</label>
+          <input class="field-input" id="evt-date" name="dateLabel" type="text" required placeholder="Contoh: 14-16 Agu 2026">
+          <span class="field-error" data-field-error="dateLabel" hidden></span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="field-group">
+            <label class="field-label" for="evt-price">Harga (IDR)</label>
+            <input class="field-input mono" id="evt-price" name="price" type="number" min="1000" required placeholder="350000">
+            <span class="field-error" data-field-error="price" hidden></span>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="evt-quota">Kuota Total</label>
+            <input class="field-input mono" id="evt-quota" name="totalQuota" type="number" min="1" required placeholder="150">
+            <span class="field-error" data-field-error="totalQuota" hidden></span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="evt-poster">Upload Poster / Thumbnail Event (Opsional)</label>
+          <input class="field-input" id="evt-poster" name="posterFile" type="file" accept="image/png,image/jpeg,image/webp">
+          <span class="field-error" data-field-error="posterFile" hidden></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="evt-desc">Deskripsi Tiket</label>
+          <textarea class="field-textarea" id="evt-desc" name="description" required placeholder="Fasilitas dan akses area panggung untuk pemegang tiket ini..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Data Event</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Verifikasi Transaksi -->
+  <div class="modal-backdrop" id="verify-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="verify-modal-title" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="verify-modal-title" style="margin:0;">Verifikasi Bukti Pembayaran</h2>
+        <button type="button" class="modal-close-btn" id="verify-modal-close" aria-label="Tutup modal verifikasi">&times;</button>
+      </div>
+      <div id="verify-modal-feedback" class="alert-box alert-box--error" role="alert" hidden></div>
+      <div id="verify-trx-details" class="alert-box alert-box--info"></div>
+      <img id="verify-proof-img" class="proof-preview-img" src="" alt="Bukti transfer unggahan pemesan">
+      <div class="field-group">
+        <label class="field-label" for="verify-admin-note">Catatan Verifikator</label>
+        <input class="field-input" id="verify-admin-note" type="text" placeholder="Contoh: Dana masuk sesuai nominal">
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <button type="button" class="btn btn-secondary" id="verify-approve-btn">Terima Pembayaran (Paid)</button>
+        <button type="button" class="btn btn-danger" id="verify-reject-btn">Tolak &amp; Kembalikan Kuota</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kurasi Band -->
+  <div class="modal-backdrop" id="curate-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="curate-modal-title" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="curate-modal-title" style="margin:0;">Review Kurasi Audisi Band</h2>
+        <button type="button" class="modal-close-btn" id="curate-modal-close" aria-label="Tutup modal kurasi">&times;</button>
+      </div>
+      <div id="curate-modal-feedback" class="alert-box alert-box--error" role="alert" hidden></div>
+      <div id="curate-band-details" class="alert-box alert-box--info"></div>
+
+      <div class="field-group">
+        <label for="curate-publish-schedule" style="display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+          <input type="checkbox" id="curate-publish-schedule" checked>
+          <span>Publikasikan ke Jadwal Manggung Publik saat Disetujui</span>
+        </label>
+      </div>
+
+      <div id="curate-slot-fields">
+        <div class="field-group">
+          <label class="field-label" for="curate-day">Hari Tampil</label>
+          <select class="field-select" id="curate-day">
+            <option value="Hari 1 (Jumat, 14 Agu)">Hari 1 (Jumat, 14 Agu)</option>
+            <option value="Hari 2 (Sabtu, 15 Agu)">Hari 2 (Sabtu, 15 Agu)</option>
+            <option value="Hari 3 (Minggu, 16 Agu)">Hari 3 (Minggu, 16 Agu)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="curate-stage">Panggung (Stage)</label>
+          <select class="field-select" id="curate-stage">
+            <option value="Sunset Main Stage">Sunset Main Stage</option>
+            <option value="Karang Acoustic Deck">Karang Acoustic Deck</option>
+            <option value="Nautilus Surf Tent">Nautilus Surf Tent</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="curate-time">Jam Tampil</label>
+          <input class="field-input mono" id="curate-time" type="text" value="16:00 - 16:45 WITA">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.75rem;">
+        <button type="button" class="btn btn-lilac" id="curate-review-btn">Tandai Reviewed</button>
+        <button type="button" class="btn btn-secondary" id="curate-approve-btn">Terima Band (Lineup)</button>
+        <button type="button" class="btn btn-danger" id="curate-reject-btn">Tolak Audisi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/pages/admin-dashboard.js"></script>
+</body>
+</html>

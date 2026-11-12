@@ -1,0 +1,19 @@
+# Varian file env lokal/produksi lain (tetap izinkan .env.example)
+.env.*
+!.env.example
+
+# Pengaturan IDE / Editor & Windows lokal
+.vscode/
+.idea/
+*.swp
+desktop.ini
+
+# File sementara, backup, session, atau dependensi jika ada
+*.tmp
+*.bak
+sess_*
+vendor/
+node_modules/
+
+# Environment Thunder Client jika menyimpan kredensial/cookie lokal
+thunder-tests/thunderEnvironment.json

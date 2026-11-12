@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pendaftaran Audisi Band - Tarakota Fest 2026</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/sticker-star-yellow.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/public.css">
+</head>
+<body data-page="daftar-band">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main-content" class="public-main" tabindex="-1">
+    <section class="page-header-band">
+      <div class="container">
+        <span class="status-badge status-badge--lilac">Pendaftaran Band Audisi</span>
+        <h1 style="margin-top:0.5rem;">Daftarkan Bandmu ke Tarakota Fest 2026</h1>
+        <p>Kirimkan profil band dan tautan demo lagu untuk dinilai oleh tim kurator festival. Band terpilih akan tampil di panggung tepi pantai kami.</p>
+      </div>
+      <img class="page-header-sticker" src="assets/images/sticker-nautilus.svg" alt="" width="78" height="74" aria-hidden="true">
+    </section>
+
+    <section class="section-block">
+      <div class="container">
+        <div class="form-two-col">
+          <div class="form-card">
+            <h2 style="margin-bottom:0.5rem;">Formulir Audisi Band</h2>
+            <p style="color:var(--color-ink-muted); margin-bottom:1.25rem;">Semua bidang wajib diisi dengan tautan demo lagu yang dapat diakses publik.</p>
+
+            <div id="band-form-feedback" class="alert-box" tabindex="-1" hidden></div>
+
+            <form id="band-register-form" novalidate>
+              <div class="field-group">
+                <label class="field-label" for="band-name">Nama Band / Proyek Musik</label>
+                <input class="field-input" id="band-name" name="bandName" type="text" required placeholder="Contoh: Samudra Synth Collective">
+                <span class="field-error" data-field-error="bandName" hidden></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="band-genre">Genre Musik</label>
+                <input class="field-input" id="band-genre" name="genre" type="text" list="genre-suggestions" required placeholder="Contoh: Surf Rock, Indie Pop, Reggae Dub">
+                <datalist id="genre-suggestions">
+                  <option value="Surf Rock">
+                  <option value="Indie Pop">
+                  <option value="Reggae Dub">
+                  <option value="Folk Pesisir">
+                  <option value="Tropical Disco">
+                </datalist>
+                <span class="field-error" data-field-error="genre" hidden></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="band-city">Kota Asal</label>
+                <input class="field-input" id="band-city" name="originCity" type="text" required placeholder="Contoh: Malang / Lombok / Denpasar">
+                <span class="field-error" data-field-error="originCity" hidden></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="band-contact">Kontak WhatsApp (maks 20 karakter)</label>
+                <input class="field-input" id="band-contact" name="contact" type="text" maxlength="20" required placeholder="Contoh: 081234567890">
+                <span class="field-error" data-field-error="contact" hidden></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="band-demo-url">Link Demo Lagu (URL Valid https://)</label>
+                <input class="field-input" id="band-demo-url" name="demoUrl" type="url" required placeholder="https://soundcloud.com/namaband/demo-pantai">
+                <span class="field-error" data-field-error="demoUrl" hidden></span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="band-bio">Profil Singkat Band (Opsional)</label>
+                <textarea class="field-textarea" id="band-bio" name="bio" placeholder="Ceritakan karakter musik band dan pengalaman manggung kalian..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="band-submit-btn" style="width:100%;">Daftarkan Band untuk Audisi</button>
+            </form>
+          </div>
+
+          <aside class="info-card" aria-label="Ketentuan Kurasi Audisi">
+            <h2 style="margin-bottom:0.75rem;">Alur Kurasi Band</h2>
+            <ol style="padding-left:1.25rem; margin:0 0 1.25rem; display:grid; gap:0.65rem;">
+              <li>Isi formulir profil dan sertakan tautan demo lagu (YouTube, SoundCloud, Spotify, atau Drive).</li>
+              <li>Tim kurator akan memeriksa tautan demo melalui Portal Admin Backoffice.</li>
+              <li>Band yang disetujui dapat langsung dipublikasikan ke halaman <a href="jadwal.html">Jadwal Manggung</a>.</li>
+            </ol>
+            <div class="alert-box alert-box--pending" style="margin-bottom:0;">
+              <strong>Catatan Validasi:</strong> Pastikan link demo diawali <span class="mono">https://</span> agar lolos pemeriksaan API Pendaftaran (HTTP 201).
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/pages/band-register.js"></script>
+</body>
+</html>
+

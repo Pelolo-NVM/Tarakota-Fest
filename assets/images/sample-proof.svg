@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 600" width="480" height="600" role="img" aria-label="Contoh struk bukti transfer sample">
+  <rect width="480" height="600" rx="12" fill="#FDFBF7" stroke="#292524" stroke-width="4"/>
+  <rect x="28" y="28" width="424" height="84" rx="8" fill="#6EE7B7" stroke="#292524" stroke-width="3"/>
+  <text x="240" y="78" text-anchor="middle" fill="#292524" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="22">BUKTI TRANSFER DEMO</text>
+  <text x="40" y="164" fill="#292524" font-family="'JetBrains Mono', monospace" font-size="16">REF     : TF-2026-88412</text>
+  <text x="40" y="204" fill="#292524" font-family="'JetBrains Mono', monospace" font-size="16">TUJUAN  : TARAKOTA FEST ID</text>
+  <text x="40" y="244" fill="#292524" font-family="'JetBrains Mono', monospace" font-size="16">NOMINAL : Rp 350.000</text>
+  <text x="40" y="284" fill="#292524" font-family="'JetBrains Mono', monospace" font-size="16">STATUS  : TERKIRIM</text>
+  <line x1="40" y1="330" x2="440" y2="330" stroke="#292524" stroke-width="2" stroke-dasharray="8 8"/>
+  <text x="240" y="388" text-anchor="middle" fill="#57534E" font-family="'Plus Jakarta Sans', sans-serif" font-size="15">Contoh file bukti bayar untuk verifikasi admin</text>
+</svg>
+

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240" role="img" aria-label="Slot thumbnail event tiket">
+  <rect width="400" height="240" rx="12" fill="#F5EFE6" stroke="#292524" stroke-width="3"/>
+  <circle cx="320" cy="70" r="34" fill="#FFB38A" stroke="#292524" stroke-width="3"/>
+  <path d="M24 185 Q 120 155, 210 185 T 376 175" fill="none" stroke="#6EE7B7" stroke-width="10" stroke-linecap="round"/>
+  <path d="M24 185 Q 120 155, 210 185 T 376 175" fill="none" stroke="#292524" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="200" y="112" text-anchor="middle" fill="#292524" font-family="'Fredoka', sans-serif" font-weight="700" font-size="20">PASS ARTWORK SLOT</text>
+  <text x="200" y="138" text-anchor="middle" fill="#57534E" font-family="'JetBrains Mono', monospace" font-size="12">[EVENT VISUAL]</text>
+</svg>
+

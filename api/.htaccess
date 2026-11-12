@@ -1,0 +1,14 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Single Entry Point enforcement: block direct requests to Core and Controllers
+    RewriteRule ^(?:Core|Controllers)(?:/|$) - [F,L]
+
+    # Route all API endpoints through api/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
