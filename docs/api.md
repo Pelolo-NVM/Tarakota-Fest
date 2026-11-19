@@ -48,6 +48,7 @@ Seluruh endpoint mengembalikan struktur envelope JSON yang seragam dari `api/Cor
 | Method | Path | Tujuan | Auth | Query / Request Body | Status Sukses | Status Gagal |
 |---|---|---|---|---|---|---|
 | `GET` | `/health` | Cek konektivitas API & database MySQL | Publik | - | `200 JSON` | `500 JSON` |
+| `GET` | `/csrf-token` | Ambil token proteksi CSRF sesi aktif | Publik / Auth | - | `200 JSON` | - |
 | `POST` | `/register` | Registrasi akun pengguna baru (`password_hash`) | Publik | JSON `{ nama, email, password }` | `201 JSON` | `422 JSON` (validasi/email terdaftar) |
 | `POST` | `/login` | Login pengguna/admin umum & terbitkan session | Publik | JSON `{ email, password }` | `200 JSON` | `401` / `422 JSON` |
 | `GET` | `/me` | Ambil profil pengguna aktif tanpa `password_hash` | User / Admin | Cookie sesi | `200 JSON` | `401 JSON` (belum login) |
@@ -57,24 +58,27 @@ Seluruh endpoint mengembalikan struktur envelope JSON yang seragam dari `api/Cor
 | `POST` | `/admin/logout` | Akhiri sesi administrator | Admin | Cookie sesi | `200 JSON` | - |
 | `GET` | `/events` | Read collection katalog event + filter + pagination | Publik / Admin (`all=1`) | `?all=0\|1&status=active\|cancelled\|completed&search=...&page=1&limit=50` | `200 JSON` | `400` (`page`/`limit`/`status` invalid), `401` (`all=1` tanpa login) |
 | `GET` | `/events/{id}` | Read detail 1 event berdasarkan `kode_event` | Publik / Admin | Path parameter `{id}` (contoh `EVT-01`) | `200 JSON` | `404 JSON` jika ID tidak ada / terarsip |
-| `POST` | `/events` | Create event baru (+ opsional upload poster) | Admin | JSON atau `multipart/form-data`: `title`, `category`, `dateLabel`, `price`, `totalQuota`, `description`, `posterFile` | `201 JSON` | `401`, `422 JSON` |
-| `PUT` / `POST` | `/events/{id}` | Full update event berdasarkan `kode_event` | Admin | JSON (`PUT`) atau `multipart/form-data` (`POST`) semua field event | `200 JSON` | `401`, `404`, `422 JSON` |
-| `PATCH` | `/events/{id}` | Partial update event (hanya field yang dikirim) | Admin | JSON (minimal 1 field, mis. `{ "price": 175000 }`) | `200 JSON` | `401`, `404`, `422 JSON` |
-| `PATCH` | `/events/{id}/status` | Ubah status event (`active`, `cancelled`, `completed`) | Admin | JSON `{ status }` | `200 JSON` | `401`, `404`, `422 JSON` |
-| `DELETE` | `/events/{id}` | Soft delete event (`is_active = 0`, `status = 'cancelled'`) | Admin | Path parameter `{id}` | `200 JSON` | `401`, `404 JSON` |
+| `POST` | `/events` | Create event baru (+ opsional upload poster) | Admin + CSRF | JSON atau `multipart/form-data`: `title`, `category`, `dateLabel`, `price`, `totalQuota`, `description`, `posterFile` | `201 JSON` | `401`, `403` (CSRF/RBAC), `422 JSON` |
+| `PUT` / `POST` | `/events/{id}` | Full update event berdasarkan `kode_event` | Admin + CSRF | JSON (`PUT`) atau `multipart/form-data` (`POST`) semua field event | `200 JSON` | `401`, `403` (CSRF/RBAC), `404`, `422 JSON` |
+| `PATCH` | `/events/{id}` | Partial update event (hanya field yang dikirim) | Admin + CSRF | JSON (minimal 1 field, mis. `{ "price": 175000 }`) | `200 JSON` | `401`, `403` (CSRF/RBAC), `404`, `422 JSON` |
+| `PATCH` | `/events/{id}/status` | Ubah status event (`active`, `cancelled`, `completed`) | Admin + CSRF | JSON `{ status }` | `200 JSON` | `401`, `403` (CSRF/RBAC), `404`, `422 JSON` |
+| `DELETE` | `/events/{id}` | Soft delete event (`is_active = 0`, `status = 'cancelled'`) | Admin + CSRF | Path parameter `{id}` | `200 JSON` | `401`, `403` (CSRF/RBAC), `404 JSON` |
 | `GET` | `/schedule` | Read collection jadwal manggung + multi-filter + pagination | Publik | `?day=...&stage=...&genre=...&search=...&page=1&limit=50` | `200 JSON` | `400` (`page`/`limit` invalid) |
 | `GET` | `/transactions` | Read daftar transaksi tiket + filter status + pagination | Admin | `?status=all\|pending\|paid\|cancelled&page=1&limit=50` | `200 JSON` | `400`, `401` |
 | `GET` | `/transactions/lookup` | Cari status pesanan tiket publik | Publik | `?query=TRX-2026-0001` atau email, `?page=1&limit=25` | `200 JSON` | `400`, `422 JSON` |
 | `GET` | `/my-tickets` | Riwayat transaksi tiket milik user yang sedang login | User / Admin | Cookie sesi | `200 JSON` | `401 JSON` (belum login) |
 | `GET` | `/transactions/{id}` | Read detail 1 transaksi (`kode_transaksi`) | Admin | Path parameter `{id}` | `200 JSON` | `401`, `404 JSON` |
 | `POST` | `/transactions` | Checkout & hold kuota tiket (15 menit) + opsional bukti | Publik | `multipart/form-data` / JSON: `eventId`, `buyerName`, `buyerEmail`, `buyerPhone`, `qty`, `proofFile`? (opsional) | `201 JSON` | `422 JSON` |
-| `POST` | `/transactions/{id}/proof` | Unggah bukti transfer transaksi yang sedang di-hold | Publik / Owner | `multipart/form-data`: `proofFile` (PNG/JPG/WEBP <= 2 MB) | `200 JSON` | `403` (bukan pemilik), `404`, `422 JSON` |
-| `PATCH` | `/transactions/{id}/verify` | Verifikasi pembayaran (`paid` / `cancelled` restore kuota) | Admin | JSON `{ decision, adminNote }` | `200 JSON` | `401`, `404`, `422 JSON` |
+| `POST` | `/transactions/{id}/proof` | Unggah bukti transfer transaksi (IDOR Protected) | Publik / Owner | `multipart/form-data`: `proofFile` (PNG/JPG/WEBP <= 2 MB), `verifyEmail` (jika guest) | `200 JSON` | `403` (IDOR blocked / bukan pemilik), `404`, `422 JSON` |
+| `PATCH` | `/transactions/{id}/verify` | Verifikasi pembayaran (`paid` / `cancelled` restore kuota) | Admin + CSRF | JSON `{ decision, adminNote }` | `200 JSON` | `401`, `403` (CSRF/RBAC), `404`, `422 JSON` |
 | `GET` | `/bands` | Read daftar pendaftar audisi band + filter + pagination | Admin | `?status=all\|pending\|reviewed\|accepted\|rejected&page=1&limit=50` | `200 JSON` | `400`, `401` |
 | `GET` | `/bands/{id}` | Read detail 1 pendaftar band (`kode_band`) | Admin | Path parameter `{id}` | `200 JSON` | `401`, `404 JSON` |
 | `POST` | `/bands` | Kirim pendaftaran audisi band lokal | Publik | JSON `{ bandName, genre, originCity, contact, demoUrl, bio }` | `201 JSON` | `422 JSON` |
-| `PATCH` | `/bands/{id}/curate` | Update kurasi (`reviewed`/`accepted`/`rejected`) + auto lineup | Admin | JSON `{ decision, scheduleSlot? }` | `200 JSON` | `401`, `404`, `422 JSON` |
+| `PATCH` | `/bands/{id}/curate` | Update kurasi (`reviewed`/`accepted`/`rejected`) + auto lineup | Admin + CSRF | JSON `{ decision, scheduleSlot? }` | `200 JSON` | `401`, `403` (CSRF/RBAC), `404`, `422 JSON` |
 | `GET` | `/analytics/summary` | Ringkasan analitik pendapatan, tiket, antrean | Admin | - | `200 JSON` | `401 JSON` |
+| `GET` | `/users` | Read daftar user terdaftar + pagination | Admin | `?search=...&role=all\|admin\|user&page=1&limit=50` | `200 JSON` | `401`, `403` |
+| `POST` | `/users` | Tambah pengguna baru (admin portal) | Admin + CSRF | JSON `{ nama, email, password, role }` | `201 JSON` | `401`, `403`, `422 JSON` |
+| `PATCH` | `/users/{id}/status` | Aktifkan/nonaktifkan status akun user | Admin + CSRF | - | `200 JSON` | `401`, `403`, `404 JSON` |
 
 ---
 

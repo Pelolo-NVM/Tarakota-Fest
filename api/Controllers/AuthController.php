@@ -44,7 +44,9 @@ final class AuthController
         }
 
         Auth::loginUser($user);
-        Response::ok(200, Auth::user(), 'Autentikasi berhasil.');
+        $userData = Auth::user() ?? [];
+        $userData['csrfToken'] = Auth::csrfToken();
+        Response::ok(200, $userData, 'Autentikasi berhasil.');
     }
 
     public static function register(PDO $pdo): never
@@ -126,6 +128,7 @@ final class AuthController
 
         $user['id'] = (int) $user['id'];
         $user['is_active'] = (bool) $user['is_active'];
+        $user['csrfToken'] = Auth::csrfToken();
 
         Response::ok(200, $user, 'Data profil pengguna aktif.');
     }
@@ -138,6 +141,10 @@ final class AuthController
 
     public static function session(): never
     {
-        Response::ok(200, Auth::user());
+        $curr = Auth::user();
+        if ($curr !== null) {
+            $curr['csrfToken'] = Auth::csrfToken();
+        }
+        Response::ok(200, $curr);
     }
 }

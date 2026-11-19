@@ -48,6 +48,13 @@ if ($route === '') {
     $route = '/';
 }
 
+// HTTP Security Headers (OWASP Top 10:2025 A02 - Security Misconfiguration Mitigation)
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
 try {
     if ($method === 'GET' && ($route === '/' || $route === '/health')) {
         $pdo = tarakota_db();
@@ -57,6 +64,13 @@ try {
             'status'  => 'healthy',
             'time'    => gmdate('c'),
         ]);
+    }
+
+    // CSRF Token Provider (OWASP Top 10 A01 / CSRF Defense - Langkah D.5 Modul 13)
+    if (($route === '/csrf-token' || $route === '/auth/csrf') && $method === 'GET') {
+        Response::ok(200, [
+            'csrfToken' => Auth::csrfToken(),
+        ], 'CSRF token aktif.');
     }
 
     // Authentication & Profile endpoints (Modul 12: Register/Login/Logout & /api/me)

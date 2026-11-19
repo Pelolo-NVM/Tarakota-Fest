@@ -14,10 +14,40 @@
     if (limit && Number(limit) > 0) qs.set('limit', String(limit));
   }
 
+  var cachedCsrfToken = null;
+
+  async function fetchCsrfToken() {
+    if (cachedCsrfToken) return cachedCsrfToken;
+    try {
+      var res = await fetch(buildUrl('/api/csrf-token'), {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (data && data.data && data.data.csrfToken) {
+        cachedCsrfToken = data.data.csrfToken;
+      }
+    } catch (_e) {}
+    return cachedCsrfToken;
+  }
+
   async function requestJson(endpoint, options) {
     var opts = options || {};
     var headers = Object.assign({ Accept: 'application/json' }, opts.headers || {});
     var isFormData = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+    var method = (opts.method || 'GET').toUpperCase();
+
+    if (method !== 'GET' && method !== 'HEAD') {
+      if (!cachedCsrfToken && endpoint.indexOf('csrf-token') === -1) {
+        await fetchCsrfToken();
+      }
+      if (cachedCsrfToken && !headers['X-CSRF-Token']) {
+        headers['X-CSRF-Token'] = cachedCsrfToken;
+      }
+      if (isFormData && cachedCsrfToken && !opts.body.has('csrf_token')) {
+        opts.body.set('csrf_token', cachedCsrfToken);
+      }
+    }
 
     if (!isFormData && opts.body !== undefined && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
@@ -41,6 +71,10 @@
           message: 'Respons server bukan JSON yang valid (HTTP ' + res.status + ').',
           errors: {}
         };
+      }
+
+      if (payload && payload.data && payload.data.csrfToken) {
+        cachedCsrfToken = payload.data.csrfToken;
       }
 
       return {
@@ -254,6 +288,9 @@
       },
       getSession: function () {
         return requestJson('/api/admin/session');
+      },
+      getCsrfToken: function () {
+        return fetchCsrfToken();
       }
     }
   };

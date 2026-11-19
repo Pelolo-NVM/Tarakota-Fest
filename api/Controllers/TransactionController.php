@@ -446,8 +446,25 @@ final class TransactionController
         }
 
         $currentUser = Auth::user();
-        if ($currentUser && $currentUser['role'] !== 'admin' && (int) $currentUser['id'] !== (int) $trx['user_id'] && strtolower($currentUser['email']) !== strtolower((string) $trx['buyer_email'])) {
-            Response::error(403, 'Akses ditolak. Transaksi ini bukan milik akun Anda.');
+        // IDOR Mitigation (OWASP Top 10 A01: Broken Access Control)
+        // If order belongs to an account, caller must be the owner, an admin, or provide matching buyer verification
+        if ($trx['user_id'] !== null) {
+            if ($currentUser === null) {
+                $input = $_POST !== [] ? $_POST : Response::readInput();
+                $verifyEmail = strtolower(Validator::cleanString($input['verifyEmail'] ?? $input['email'] ?? ''));
+                $verifyPhone = Validator::cleanString($input['verifyPhone'] ?? $input['phone'] ?? '');
+
+                $emailMatches = ($verifyEmail !== '' && $verifyEmail === strtolower((string) $trx['buyer_email']));
+                $phoneMatches = ($verifyPhone !== '' && $verifyPhone === (string) $trx['no_wa']);
+
+                if (!$emailMatches && !$phoneMatches) {
+                    Response::error(403, 'Akses ditolak (IDOR Defense): Silakan login ke akun Anda atau sertakan verifikasi email pemesan untuk mengunggah bukti bayar.', [
+                        'auth' => 'Otorisasi kepemilikan transaksi gagal. Anda bukan pemilik transaksi ini.',
+                    ]);
+                }
+            } elseif ($currentUser['role'] !== 'admin' && (int) $currentUser['id'] !== (int) $trx['user_id'] && strtolower($currentUser['email']) !== strtolower((string) $trx['buyer_email'])) {
+                Response::error(403, 'Akses ditolak: Transaksi ini milik akun lain.');
+            }
         }
 
         $upload = FileUploader::handleUpload('proofFile', 'proofs', true);

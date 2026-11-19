@@ -1,0 +1,32 @@
+{
+    "name": "tarakota/tarakota-fest-2026",
+    "description": "Platform Manajemen Konser Musik Pesisir Tarakota Fest 2026 - Arsitektur Native PHP 8.4 REST API & Vanilla Web",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Febryano Putra",
+            "email": "2440304020@borneo.ac.id",
+            "role": "Lead Developer & Security Reviewer"
+        }
+    ],
+    "require": {
+        "php": "^8.2 || ^8.3 || ^8.4",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-fileinfo": "*"
+    },
+    "config": {
+        "platform": {
+            "php": "8.4.25"
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {}
+    },
+    "scripts": {
+        "security-audit": "composer audit"
+    }
+}
