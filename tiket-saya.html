@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiket Saya - Tarakota Fest 2026</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/sticker-star-yellow.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/public.css">
+</head>
+<body data-page="tiket-saya">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main-content" class="public-main" tabindex="-1">
+    <section class="page-header-band">
+      <div class="container">
+        <span class="status-badge status-badge--mint">E-Ticket Wallet</span>
+        <h1 style="margin-top:0.5rem;">Dompet Tiket &amp; E-Pass Digital</h1>
+        <p>Pantau status transaksi, batas waktu hold 15 menit, transfer presisi dengan kode unik, dan tunjukkan E-Pass QR di pintu gerbang festival.</p>
+      </div>
+      <img class="page-header-sticker" src="assets/images/sticker-starfish.svg" alt="" width="76" height="72" aria-hidden="true">
+    </section>
+
+    <section class="section-block">
+      <div class="container">
+        <!-- Auth Guest Alert (if not logged in) -->
+        <div id="wallet-auth-prompt" class="about-callout-card" style="margin-bottom:2rem;" hidden>
+          <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
+            <div>
+              <span class="status-badge status-badge--amber">Belum Masuk Akun</span>
+              <h2 style="margin:0.4rem 0 0.2rem; font-size:var(--text-xl);">Masuk untuk Mengakses Tiket Anda</h2>
+              <p style="margin:0; font-size:var(--text-sm); color:var(--color-ink-muted);">Tiket yang dipesan tersimpan aman pada akun Anda. Masuk sekarang untuk memantau status atau mengunggah bukti bayar.</p>
+            </div>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" id="btn-wallet-login">Masuk ke Akun</button>
+              <button type="button" class="btn btn-ghost" id="btn-wallet-demo">⚡ Akun Demo (Raka Pratama)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Greeting & Controls (if logged in) -->
+        <div id="wallet-user-banner" class="mint-wave-grid" style="margin-bottom:1.5rem; padding:1rem 1.25rem; background:var(--glass-bg-soft); border-radius:18px; border:2px solid var(--color-border-ink);" hidden>
+          <div>
+            <div style="font-size:var(--text-xs); color:var(--color-ink-muted); font-weight:700;">AKUN PENGUNJUNG</div>
+            <div style="font-size:var(--text-lg); font-weight:700;" id="wallet-user-name">Memuat profil...</div>
+            <div class="mono" style="font-size:var(--text-xs); color:var(--color-ink-muted);" id="wallet-user-email"></div>
+          </div>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-refresh-tickets">Perbarui Status</button>
+            <a href="pemesanan.html" class="btn btn-primary btn-sm">+ Beli Tiket Lagi</a>
+          </div>
+        </div>
+
+        <!-- Ticket Cards Container -->
+        <div id="wallet-tickets-container">
+          <div class="state-panel">
+            <h3>Memeriksa status akun &amp; memuat tiket...</h3>
+            <p>Sinkronisasi data e-ticket dengan server Tarakota Fest.</p>
+          </div>
+        </div>
+
+        <!-- Lookup fallback for non-account holders -->
+        <section class="lookup-panel" aria-labelledby="guest-lookup-heading" style="margin-top:3rem;">
+          <h2 id="guest-lookup-heading" style="margin-bottom:0.35rem;">Cari Transaksi Tiket Tamu</h2>
+          <p style="color:var(--color-ink-muted); margin-bottom:1rem;">Jika Anda memesan tanpa akun terdaftar, cari pesanan Anda berdasarkan kode transaksi (misal <span class="mono">TRX-2026-0001</span>) atau email.</p>
+          <form id="wallet-guest-lookup-form" novalidate>
+            <div class="lookup-form-row">
+              <div class="field-group">
+                <label class="field-label" for="wallet-lookup-query">Kode Transaksi / Email Pemesan</label>
+                <input class="field-input" id="wallet-lookup-query" name="query" type="text" required placeholder="TRX-2026-0001 atau nama@domain.com">
+                <span class="field-error" data-field-error="query" hidden></span>
+              </div>
+              <button type="submit" class="btn btn-secondary">Cari Tiket</button>
+            </div>
+          </form>
+          <div id="wallet-guest-lookup-result" hidden></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- Upload Proof Modal -->
+  <div class="modal-backdrop" id="proof-upload-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="proof-modal-title" hidden>
+    <div class="modal-card" style="max-width:480px;">
+      <div class="modal-header">
+        <div>
+          <span class="status-badge status-badge--amber">Unggah Bukti Bayar</span>
+          <h2 id="proof-modal-title" style="margin-top:0.4rem; margin-bottom:0.2rem;">Konfirmasi Pembayaran</h2>
+          <p id="proof-modal-trx-meta" class="mono" style="margin:0; font-size:var(--text-xs); color:var(--color-ink-muted);"></p>
+        </div>
+        <button type="button" class="modal-close-btn" id="proof-modal-close" aria-label="Tutup modal unggah bukti">&times;</button>
+      </div>
+
+      <div id="proof-modal-errors" class="alert-box alert-box--error" hidden></div>
+
+      <form id="wallet-upload-proof-form" enctype="multipart/form-data" novalidate>
+        <input type="hidden" id="proof-target-trx-code" name="trxCode">
+
+        <div class="unique-amount-highlight" style="margin-top:0;">
+          <span style="font-size:var(--text-xs); font-weight:700; color:var(--color-ink-muted);">TOTAL TRANSFER TEPAT</span>
+          <span class="amount-val" id="proof-modal-total-display">Rp 0</span>
+          <span class="amount-note">Sudah termasuk 3 digit kode unik. Rekening Tujuan: <strong>Bank Mandiri 140-002-026-8888 a.n. Yayasan Tarakota Fest</strong>.</span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="proof-modal-file">Pilih Bukti Pembayaran (PNG, JPG, WEBP maks 2 MB)</label>
+          <div class="dropzone" id="wallet-proof-dropzone">
+            <input id="proof-modal-file" name="proofFile" type="file" accept="image/png,image/jpeg,image/webp" required>
+            <p style="margin:0; font-size:var(--text-sm); color:var(--color-ink-muted);">Klik atau jatuhkan foto struk / screenshot m-banking di sini.</p>
+          </div>
+          <div id="wallet-proof-preview-box" style="margin-top:0.75rem;" hidden>
+            <img id="wallet-proof-preview-img" class="dropzone-preview" src="" alt="Pratinjau bukti transfer">
+            <p id="wallet-proof-file-name" class="mono" style="margin:0.35rem 0; font-size:var(--text-xs);"></p>
+          </div>
+          <span class="field-error" data-field-error="proofFile" hidden></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="wallet-submit-proof-btn" style="width:100%;">Kirim Bukti Pembayaran</button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/api.js?v=20261118"></script>
+  <script src="assets/js/components.js?v=20261118"></script>
+  <script src="assets/js/pages/my-tickets.js?v=20261118"></script>
+</body>
+</html>

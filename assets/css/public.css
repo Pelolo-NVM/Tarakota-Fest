@@ -941,3 +941,156 @@ body[data-page="daftar-band"] .site-footer {
   }
 }
 
+/* Two-Step Reservation & 15-Minute Countdown Hold Card */
+.hold-timer-card {
+  padding: var(--space-5);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 237, 213, 0.75), rgba(254, 243, 199, 0.6));
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 2px solid var(--color-accent-tangerine);
+  box-shadow: var(--glass-specular), var(--shadow-sticker-sm);
+  margin-bottom: var(--space-5);
+}
+
+.countdown-box {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-espresso);
+  color: #FDFBF7;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.countdown-box.is-urgent {
+  background: #DC2626;
+  animation: pulseWarning 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulseWarning {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.04); }
+}
+
+.unique-amount-highlight {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  background: #FFFFFF;
+  border: 2px dashed var(--color-border-ink);
+  border-radius: 12px;
+  margin: var(--space-3) 0;
+}
+
+.unique-amount-highlight .amount-val {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-ink-espresso);
+}
+
+.unique-amount-highlight .amount-note {
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+  margin-top: 0.25rem;
+}
+
+/* E-Ticket Pass Card (Wallet) */
+.eticket-wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-5);
+}
+
+.eticket-pass-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 2.5px solid var(--color-border-ink);
+  border-radius: 20px;
+  background-color: var(--color-bg-sand);
+  box-shadow: var(--shadow-sticker);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+}
+
+.eticket-pass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 6px 6px 0 var(--color-border-ink);
+}
+
+.eticket-pass-card.is-paid {
+  background: linear-gradient(160deg, #FDFBF7 60%, rgba(184, 237, 219, 0.45));
+}
+
+.eticket-pass-card.is-pending {
+  background: linear-gradient(160deg, #FDFBF7 60%, rgba(254, 215, 170, 0.45));
+}
+
+.eticket-pass-card.is-expired,
+.eticket-pass-card.is-cancelled {
+  background: linear-gradient(160deg, #FDFBF7 60%, rgba(254, 202, 202, 0.4));
+  opacity: 0.85;
+}
+
+.eticket-pass-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 2px dashed var(--color-border-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.eticket-pass-body {
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.eticket-pass-footer {
+  padding: var(--space-4) var(--space-5);
+  background: rgba(41, 37, 36, 0.04);
+  border-top: 2px solid var(--color-border-ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.eticket-pass-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: #FFFFFF;
+  border: 1.5px solid var(--color-border-ink);
+  border-radius: 12px;
+  width: fit-content;
+  margin: var(--space-2) auto;
+}
+
+.user-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-warm);
+  border: 1.5px solid var(--color-border-ink);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  color: var(--color-ink-espresso);
+}
+
+

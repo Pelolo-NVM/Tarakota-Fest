@@ -152,8 +152,19 @@
         appendPagination(qs, page, limit);
         return requestJson('/api/transactions/lookup?' + qs.toString());
       },
+      myTickets: function () {
+        return requestJson('/api/my-tickets');
+      },
       create: async function (formData) {
         var res = await requestJson('/api/transactions', { method: 'POST', body: formData });
+        if (res.ok) notifySync('transactions');
+        return res;
+      },
+      uploadProof: async function (trxCode, formData) {
+        var res = await requestJson('/api/transactions/' + encodeURIComponent(trxCode) + '/proof', {
+          method: 'POST',
+          body: formData
+        });
         if (res.ok) notifySync('transactions');
         return res;
       },
@@ -196,6 +207,26 @@
       }
     },
 
+    users: {
+      list: function (roleFilter, searchQuery, page, limit) {
+        var qs = new URLSearchParams();
+        if (roleFilter && roleFilter !== 'ALL') qs.set('role', roleFilter);
+        if (searchQuery) qs.set('search', searchQuery);
+        appendPagination(qs, page, limit);
+        return requestJson('/api/users?' + qs.toString());
+      },
+      create: async function (userData) {
+        var res = await requestJson('/api/users', { method: 'POST', body: userData });
+        if (res.ok) notifySync('users');
+        return res;
+      },
+      toggleStatus: async function (userId) {
+        var res = await requestJson('/api/users/' + encodeURIComponent(userId) + '/status', { method: 'PATCH' });
+        if (res.ok) notifySync('users');
+        return res;
+      }
+    },
+
     auth: {
       login: function (email, password) {
         return requestJson('/api/admin/login', {
@@ -203,8 +234,23 @@
           body: { email: email, password: password }
         });
       },
+      userLogin: function (email, password) {
+        return requestJson('/api/login', {
+          method: 'POST',
+          body: { email: email, password: password }
+        });
+      },
+      register: function (nama, email, password) {
+        return requestJson('/api/register', {
+          method: 'POST',
+          body: { nama: nama, email: email, password: password }
+        });
+      },
       logout: function () {
-        return requestJson('/api/admin/logout', { method: 'POST' });
+        return requestJson('/api/logout', { method: 'POST' });
+      },
+      getProfile: function () {
+        return requestJson('/api/me');
       },
       getSession: function () {
         return requestJson('/api/admin/session');

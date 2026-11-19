@@ -28,6 +28,23 @@
 
     <section class="section-block">
       <div class="container">
+        <!-- Banner Otorisasi & Akun Pengunjung -->
+        <div id="auth-fast-banner" class="hold-timer-card" style="background:linear-gradient(135deg, rgba(224, 245, 235, 0.75), rgba(255, 255, 255, 0.85)); border-color:var(--color-accent-mint); margin-bottom:1.75rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <div>
+              <span class="status-badge status-badge--mint">Akses Akun Terintegrasi</span>
+              <h3 style="margin:0.25rem 0 0.1rem; font-size:var(--text-lg);" id="pemesanan-auth-status">Belum Masuk Akun?</h3>
+              <p style="margin:0; font-size:var(--text-sm); color:var(--color-ink-muted);" id="pemesanan-auth-desc">
+                Daftar akun baru atau masuk untuk menikmati fitur auto-fill formulir pemesanan dan memantau E-Pass tiket Anda di halaman <strong>Tiket Saya</strong>.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="pemesanan-auth-actions">
+              <a href="register.html" class="btn btn-secondary btn-sm" id="btn-banner-register">Daftar User Baru</a>
+              <a href="login.html" class="btn btn-primary btn-sm" id="btn-banner-login">Masuk Akun</a>
+            </div>
+          </div>
+        </div>
+
         <div id="order-result-banner" class="alert-box" tabindex="-1" hidden></div>
 
         <div id="event-catalog-container"></div>
@@ -98,8 +115,8 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label" for="checkout-proof-file">Upload Bukti Transfer (PNG, JPG, WEBP maks 2 MB)</label>
-          <p class="field-help" style="margin-bottom:0.5rem;">Transfer ke Rekening Bank Tarakota Mandiri <strong>140-002-026-8888</strong> a.n. Yayasan Tarakota Fest.</p>
+          <label class="field-label" for="checkout-proof-file">Upload Bukti Transfer (Opsional - PNG, JPG, WEBP maks 2 MB)</label>
+          <p class="field-help" style="margin-bottom:0.5rem;">Transfer ke Rekening Bank Mandiri <strong>140-002-026-8888</strong> a.n. Yayasan Tarakota Fest. <em>(Dapat diunggah sekarang atau nanti dalam 15 menit di menu Tiket Saya)</em>.</p>
           <div class="dropzone" id="proof-dropzone">
             <input id="checkout-proof-file" name="proofFile" type="file" accept="image/png,image/jpeg,image/webp">
             <p style="margin:0; font-size:var(--text-sm); color:var(--color-ink-muted);">Tarik &amp; lepas file gambar di area ini, atau klik input file di atas.</p>
@@ -112,16 +129,16 @@
           <span class="field-error" data-field-error="proofFile" hidden></span>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="checkout-submit-btn" style="width:100%;">Kirim Pesanan &amp; Bukti Bayar</button>
+        <button type="submit" class="btn btn-primary" id="checkout-submit-btn" style="width:100%;">Kunci Kuota &amp; Lanjut ke Pembayaran</button>
       </form>
     </div>
   </div>
 
   <footer class="site-footer" id="site-footer"></footer>
 
-  <script src="assets/js/api.js"></script>
-  <script src="assets/js/components.js"></script>
-  <script src="assets/js/pages/tickets.js"></script>
+  <script src="assets/js/api.js?v=20261118"></script>
+  <script src="assets/js/components.js?v=20261118"></script>
+  <script src="assets/js/pages/tickets.js?v=20261118"></script>
 </body>
 </html>
 

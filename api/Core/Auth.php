@@ -68,13 +68,27 @@ final class Auth
         session_destroy();
     }
 
-    public static function requireAdmin(): array
+    public static function requireLogin(): array
     {
         $user = self::user();
-        if ($user === null || ($user['role'] ?? '') !== 'admin') {
-            Response::error(401, 'Sesi administrator tidak aktif. Silakan login kembali.');
+        if ($user === null) {
+            Response::error(401, 'Silakan login terlebih dahulu.');
         }
         return $user;
+    }
+
+    public static function requireRole(array $roles): array
+    {
+        $user = self::requireLogin();
+        if (!in_array($user['role'] ?? '', $roles, true)) {
+            Response::error(403, 'Akses ditolak: Role Anda (' . ($user['role'] ?? 'guest') . ') tidak memiliki izin untuk aksi ini.');
+        }
+        return $user;
+    }
+
+    public static function requireAdmin(): array
+    {
+        return self::requireRole(['admin']);
     }
 }
 

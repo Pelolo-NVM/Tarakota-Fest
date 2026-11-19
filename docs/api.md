@@ -48,7 +48,11 @@ Seluruh endpoint mengembalikan struktur envelope JSON yang seragam dari `api/Cor
 | Method | Path | Tujuan | Auth | Query / Request Body | Status Sukses | Status Gagal |
 |---|---|---|---|---|---|---|
 | `GET` | `/health` | Cek konektivitas API & database MySQL | Publik | - | `200 JSON` | `500 JSON` |
-| `POST` | `/admin/login` | Login admin & terbitkan session cookie | Publik | JSON `{ email, password }` | `200 JSON` | `401` / `422` |
+| `POST` | `/register` | Registrasi akun pengguna baru (`password_hash`) | Publik | JSON `{ nama, email, password }` | `201 JSON` | `422 JSON` (validasi/email terdaftar) |
+| `POST` | `/login` | Login pengguna/admin umum & terbitkan session | Publik | JSON `{ email, password }` | `200 JSON` | `401` / `422 JSON` |
+| `GET` | `/me` | Ambil profil pengguna aktif tanpa `password_hash` | User / Admin | Cookie sesi | `200 JSON` | `401 JSON` (belum login) |
+| `POST` | `/logout` | Akhiri sesi login dan hancurkan cookie sesi | User / Admin | Cookie sesi | `200 JSON` | - |
+| `POST` | `/admin/login` | Login khusus portal admin & verifikasi role | Publik | JSON `{ email, password }` | `200 JSON` | `401` / `403` / `422` |
 | `GET` | `/admin/session` | Cek status sesi login admin aktif | Publik | Cookie sesi | `200 JSON` | `401 JSON` |
 | `POST` | `/admin/logout` | Akhiri sesi administrator | Admin | Cookie sesi | `200 JSON` | - |
 | `GET` | `/events` | Read collection katalog event + filter + pagination | Publik / Admin (`all=1`) | `?all=0\|1&status=active\|cancelled\|completed&search=...&page=1&limit=50` | `200 JSON` | `400` (`page`/`limit`/`status` invalid), `401` (`all=1` tanpa login) |
@@ -61,8 +65,10 @@ Seluruh endpoint mengembalikan struktur envelope JSON yang seragam dari `api/Cor
 | `GET` | `/schedule` | Read collection jadwal manggung + multi-filter + pagination | Publik | `?day=...&stage=...&genre=...&search=...&page=1&limit=50` | `200 JSON` | `400` (`page`/`limit` invalid) |
 | `GET` | `/transactions` | Read daftar transaksi tiket + filter status + pagination | Admin | `?status=all\|pending\|paid\|cancelled&page=1&limit=50` | `200 JSON` | `400`, `401` |
 | `GET` | `/transactions/lookup` | Cari status pesanan tiket publik | Publik | `?query=TRX-2026-0001` atau email, `?page=1&limit=25` | `200 JSON` | `400`, `422 JSON` |
+| `GET` | `/my-tickets` | Riwayat transaksi tiket milik user yang sedang login | User / Admin | Cookie sesi | `200 JSON` | `401 JSON` (belum login) |
 | `GET` | `/transactions/{id}` | Read detail 1 transaksi (`kode_transaksi`) | Admin | Path parameter `{id}` | `200 JSON` | `401`, `404 JSON` |
-| `POST` | `/transactions` | Checkout tiket atomik + upload bukti transfer | Publik | `multipart/form-data`: `eventId`, `buyerName`, `buyerEmail`, `buyerPhone`, `qty`, `proofFile` (PNG/JPG/WEBP <= 2 MB) | `201 JSON` | `422 JSON` |
+| `POST` | `/transactions` | Checkout & hold kuota tiket (15 menit) + opsional bukti | Publik | `multipart/form-data` / JSON: `eventId`, `buyerName`, `buyerEmail`, `buyerPhone`, `qty`, `proofFile`? (opsional) | `201 JSON` | `422 JSON` |
+| `POST` | `/transactions/{id}/proof` | Unggah bukti transfer transaksi yang sedang di-hold | Publik / Owner | `multipart/form-data`: `proofFile` (PNG/JPG/WEBP <= 2 MB) | `200 JSON` | `403` (bukan pemilik), `404`, `422 JSON` |
 | `PATCH` | `/transactions/{id}/verify` | Verifikasi pembayaran (`paid` / `cancelled` restore kuota) | Admin | JSON `{ decision, adminNote }` | `200 JSON` | `401`, `404`, `422 JSON` |
 | `GET` | `/bands` | Read daftar pendaftar audisi band + filter + pagination | Admin | `?status=all\|pending\|reviewed\|accepted\|rejected&page=1&limit=50` | `200 JSON` | `400`, `401` |
 | `GET` | `/bands/{id}` | Read detail 1 pendaftar band (`kode_band`) | Admin | Path parameter `{id}` | `200 JSON` | `401`, `404 JSON` |

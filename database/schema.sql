@@ -1,11 +1,11 @@
 -- Tarakota Fest 2026 MySQL 8.x Schema & Seed (Aligned with ERD)
 -- Engine: InnoDB | Charset: utf8mb4
 
-CREATE DATABASE IF NOT EXISTS `tarakota_fest_2026`
+CREATE DATABASE IF NOT EXISTS `tarakota_fest`
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE `tarakota_fest_2026`;
+USE `tarakota_fest`;
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -45,9 +45,11 @@ CREATE TABLE IF NOT EXISTS `transaksi_tiket` (
   `no_wa` VARCHAR(30) NOT NULL DEFAULT '',
   `jumlah_tiket` INT UNSIGNED NOT NULL DEFAULT 1,
   `total_harga` DECIMAL(10,2) NOT NULL,
+  `kode_unik` INT UNSIGNED NOT NULL DEFAULT 0,
   `bukti_bayar_url` VARCHAR(255) NULL,
   `bukti_nama_asli` VARCHAR(255) NULL DEFAULT '',
-  `status` ENUM('pending', 'paid', 'cancelled') NOT NULL DEFAULT 'pending',
+  `status` ENUM('pending', 'paid', 'cancelled', 'expired') NOT NULL DEFAULT 'pending',
+  `expires_at` TIMESTAMP NULL,
   `catatan_admin` VARCHAR(255) NOT NULL DEFAULT '',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

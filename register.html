@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar User Baru - Tarakota Fest 2026</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/sticker-star-yellow.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/public.css">
+</head>
+<body data-page="register">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main-content" class="public-main" tabindex="-1">
+    <section class="page-header-band">
+      <div class="container">
+        <span class="status-badge status-badge--mint">Registrasi Pengunjung</span>
+        <h1 style="margin-top:0.5rem;">Daftar Akun Pengunjung Baru</h1>
+        <p>Buat akun resmi Tarakota Fest untuk menyimpan riwayat e-ticket, mengunci kuota tiket lebih cepat, dan mengakses E-Pass QR gate check-in.</p>
+      </div>
+      <img class="page-header-sticker" src="assets/images/sticker-starfish.svg" alt="" width="76" height="72" aria-hidden="true">
+    </section>
+
+    <section class="section-block">
+      <div class="container" style="max-width:580px;">
+        <div class="form-card" style="box-shadow:var(--shadow-sticker);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:2px dashed var(--color-border-ink); padding-bottom:1rem;">
+            <div>
+              <span class="status-badge status-badge--lilac">Formulir Pendaftaran</span>
+              <h2 style="margin:0.35rem 0 0; font-size:var(--text-xl);">Buat Akun Anda</h2>
+            </div>
+            <a href="login.html" class="btn btn-ghost btn-sm" style="font-size:var(--text-xs);">Sudah punya akun? Masuk &rarr;</a>
+          </div>
+
+          <div id="register-api-error" class="alert-box alert-box--error" role="alert" hidden></div>
+          <div id="register-api-success" class="alert-box alert-box--mint" role="status" hidden></div>
+
+          <form id="standalone-register-form" novalidate>
+            <div class="field-group">
+              <label class="field-label" for="reg-nama">Nama Lengkap</label>
+              <input class="field-input" id="reg-nama" name="nama" type="text" required placeholder="Contoh: Febryano Putra" autocomplete="name">
+              <span class="field-error" data-field-error="nama" hidden></span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="reg-email">Alamat Email</label>
+              <input class="field-input" id="reg-email" name="email" type="email" required placeholder="nama@domain.com" autocomplete="email">
+              <span class="field-error" data-field-error="email" hidden></span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="reg-pass">Kata Sandi (Password Hashing BCrypt)</label>
+              <input class="field-input" id="reg-pass" name="password" type="password" required placeholder="Minimal 6 karakter" autocomplete="new-password">
+              <p class="field-help" style="margin-top:0.25rem;">Kata sandi Anda dienkripsi satu arah dengan algoritma hashing adaptif standar industri.</p>
+              <span class="field-error" data-field-error="password" hidden></span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="reg-pass-confirm">Konfirmasi Kata Sandi</label>
+              <input class="field-input" id="reg-pass-confirm" name="password_confirm" type="password" required placeholder="Ulangi kata sandi" autocomplete="new-password">
+              <span class="field-error" data-field-error="password_confirm" hidden></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-submit-register" style="width:100%; margin-top:0.5rem; font-size:var(--text-base);">
+              Daftar Akun Baru Sekarang
+            </button>
+          </form>
+
+          <div style="margin-top:1.5rem; padding-top:1rem; border-top:1.5px solid rgba(41, 37, 36, 0.1); text-align:center;">
+            <p style="margin:0 0 0.5rem; font-size:var(--text-xs); color:var(--color-ink-muted);">Ingin mencoba login dengan akun uji coba?</p>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-quick-fill-demo" style="border:1.5px dashed var(--color-border-ink); font-size:var(--text-xs);">
+              ⚡ Isi Cepat Akun Demo (Raka Pratama)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/api.js?v=20261118"></script>
+  <script src="assets/js/components.js?v=20261118"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var UI = window.TarakotaUI;
+      var API = window.TarakotaAPI;
+      UI.mountPublicChrome('register');
+
+      var form = document.getElementById('standalone-register-form');
+      var errorBox = document.getElementById('register-api-error');
+      var successBox = document.getElementById('register-api-success');
+      var submitBtn = document.getElementById('btn-submit-register');
+      var demoBtn = document.getElementById('btn-quick-fill-demo');
+
+      if (demoBtn) {
+        demoBtn.addEventListener('click', function () {
+          document.getElementById('reg-nama').value = 'Raka Pratama';
+          document.getElementById('reg-email').value = 'raka.' + Math.floor(Math.random() * 899 + 100) + '@example.com';
+          document.getElementById('reg-pass').value = 'tarakota2026';
+          document.getElementById('reg-pass-confirm').value = 'tarakota2026';
+        });
+      }
+
+      if (form) {
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          UI.clearFieldErrors(form);
+          if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
+          if (successBox) { successBox.hidden = true; successBox.textContent = ''; }
+
+          var nama = (form.querySelector('[name="nama"]').value || '').trim();
+          var email = (form.querySelector('[name="email"]').value || '').trim();
+          var pass = (form.querySelector('[name="password"]').value || '').trim();
+          var passConf = (form.querySelector('[name="password_confirm"]').value || '').trim();
+
+          var errors = {};
+          if (nama.length < 2) errors.nama = 'Nama lengkap minimal 2 karakter.';
+          if (!email || email.indexOf('@') === -1) errors.email = 'Format email tidak valid.';
+          if (pass.length < 6) errors.password = 'Kata sandi minimal 6 karakter.';
+          if (pass !== passConf) errors.password_confirm = 'Konfirmasi kata sandi tidak cocok.';
+
+          if (Object.keys(errors).length > 0) {
+            UI.applyFieldErrors(form, errors);
+            return;
+          }
+
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Mendaftarkan Akun...';
+          }
+
+          var res = await API.auth.register(nama, email, pass);
+
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Daftar Akun Baru Sekarang';
+          }
+
+          if (!res.ok) {
+            if (errorBox) {
+              errorBox.textContent = res.message || 'Pendaftaran gagal.';
+              errorBox.hidden = false;
+            }
+            if (res.errors) UI.applyFieldErrors(form, res.errors);
+            return;
+          }
+
+          if (successBox) {
+            successBox.innerHTML =
+              '<strong>Registrasi Berhasil (HTTP 201 Created)!</strong>' +
+              '<p style="margin:0.35rem 0 0;">Selamat datang, <strong>' + UI.escapeHtml(nama) + '</strong>. Kata sandi telah di-hash dengan aman. Mengalihkan ke halaman pemesanan tiket...</p>';
+            successBox.hidden = false;
+          }
+
+          // Auto login and dispatch auth event
+          await API.auth.userLogin(email, pass);
+          window.dispatchEvent(new CustomEvent('tarakota_auth_change', { detail: res.data }));
+
+          setTimeout(function () {
+            window.location.href = 'pemesanan.html';
+          }, 1500);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
