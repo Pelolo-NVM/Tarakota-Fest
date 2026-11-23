@@ -14,10 +14,40 @@
     if (limit && Number(limit) > 0) qs.set('limit', String(limit));
   }
 
+  var cachedCsrfToken = null;
+
+  async function fetchCsrfToken() {
+    if (cachedCsrfToken) return cachedCsrfToken;
+    try {
+      var res = await fetch(buildUrl('/api/csrf-token'), {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin'
+      });
+      var data = await res.json();
+      if (data && data.data && data.data.csrfToken) {
+        cachedCsrfToken = data.data.csrfToken;
+      }
+    } catch (_e) {}
+    return cachedCsrfToken;
+  }
+
   async function requestJson(endpoint, options) {
     var opts = options || {};
     var headers = Object.assign({ Accept: 'application/json' }, opts.headers || {});
     var isFormData = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+    var method = (opts.method || 'GET').toUpperCase();
+
+    if (method !== 'GET' && method !== 'HEAD') {
+      if (!cachedCsrfToken && endpoint.indexOf('csrf-token') === -1) {
+        await fetchCsrfToken();
+      }
+      if (cachedCsrfToken && !headers['X-CSRF-Token']) {
+        headers['X-CSRF-Token'] = cachedCsrfToken;
+      }
+      if (isFormData && cachedCsrfToken && !opts.body.has('csrf_token')) {
+        opts.body.set('csrf_token', cachedCsrfToken);
+      }
+    }
 
     if (!isFormData && opts.body !== undefined && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
@@ -41,6 +71,10 @@
           message: 'Respons server bukan JSON yang valid (HTTP ' + res.status + ').',
           errors: {}
         };
+      }
+
+      if (payload && payload.data && payload.data.csrfToken) {
+        cachedCsrfToken = payload.data.csrfToken;
       }
 
       return {
@@ -152,8 +186,19 @@
         appendPagination(qs, page, limit);
         return requestJson('/api/transactions/lookup?' + qs.toString());
       },
+      myTickets: function () {
+        return requestJson('/api/my-tickets');
+      },
       create: async function (formData) {
         var res = await requestJson('/api/transactions', { method: 'POST', body: formData });
+        if (res.ok) notifySync('transactions');
+        return res;
+      },
+      uploadProof: async function (trxCode, formData) {
+        var res = await requestJson('/api/transactions/' + encodeURIComponent(trxCode) + '/proof', {
+          method: 'POST',
+          body: formData
+        });
         if (res.ok) notifySync('transactions');
         return res;
       },
@@ -196,6 +241,26 @@
       }
     },
 
+    users: {
+      list: function (roleFilter, searchQuery, page, limit) {
+        var qs = new URLSearchParams();
+        if (roleFilter && roleFilter !== 'ALL') qs.set('role', roleFilter);
+        if (searchQuery) qs.set('search', searchQuery);
+        appendPagination(qs, page, limit);
+        return requestJson('/api/users?' + qs.toString());
+      },
+      create: async function (userData) {
+        var res = await requestJson('/api/users', { method: 'POST', body: userData });
+        if (res.ok) notifySync('users');
+        return res;
+      },
+      toggleStatus: async function (userId) {
+        var res = await requestJson('/api/users/' + encodeURIComponent(userId) + '/status', { method: 'PATCH' });
+        if (res.ok) notifySync('users');
+        return res;
+      }
+    },
+
     auth: {
       login: function (email, password) {
         return requestJson('/api/admin/login', {
@@ -203,11 +268,29 @@
           body: { email: email, password: password }
         });
       },
+      userLogin: function (email, password) {
+        return requestJson('/api/login', {
+          method: 'POST',
+          body: { email: email, password: password }
+        });
+      },
+      register: function (nama, email, password) {
+        return requestJson('/api/register', {
+          method: 'POST',
+          body: { nama: nama, email: email, password: password }
+        });
+      },
       logout: function () {
-        return requestJson('/api/admin/logout', { method: 'POST' });
+        return requestJson('/api/logout', { method: 'POST' });
+      },
+      getProfile: function () {
+        return requestJson('/api/me');
       },
       getSession: function () {
         return requestJson('/api/admin/session');
+      },
+      getCsrfToken: function () {
+        return fetchCsrfToken();
       }
     }
   };

@@ -68,13 +68,74 @@ final class Auth
         session_destroy();
     }
 
-    public static function requireAdmin(): array
+    public static function requireLogin(): array
     {
         $user = self::user();
-        if ($user === null || ($user['role'] ?? '') !== 'admin') {
-            Response::error(401, 'Sesi administrator tidak aktif. Silakan login kembali.');
+        if ($user === null) {
+            Response::error(401, 'Silakan login terlebih dahulu.');
         }
         return $user;
+    }
+
+    public static function requireRole(array $roles): array
+    {
+        $user = self::requireLogin();
+        if (!in_array($user['role'] ?? '', $roles, true)) {
+            Response::error(403, 'Akses ditolak: Role Anda (' . ($user['role'] ?? 'guest') . ') tidak memiliki izin untuk aksi ini.');
+        }
+
+        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            self::requireCsrf();
+        }
+
+        return $user;
+    }
+
+    public static function csrfToken(): string
+    {
+        self::startSession();
+        if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    public static function validateCsrf(?string $token = null): bool
+    {
+        self::startSession();
+        $sessionToken = $_SESSION['csrf_token'] ?? null;
+        if (!is_string($sessionToken) || $sessionToken === '') {
+            return false;
+        }
+
+        if ($token === null) {
+            $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+            if ($token === null) {
+                $input = $_POST !== [] ? $_POST : Response::readInput();
+                $token = $input['csrf_token'] ?? $input['csrf'] ?? null;
+            }
+        }
+
+        if (!is_string($token) || $token === '') {
+            return false;
+        }
+
+        return hash_equals($sessionToken, $token);
+    }
+
+    public static function requireCsrf(): void
+    {
+        if (!self::validateCsrf()) {
+            Response::error(403, 'Akses ditolak: CSRF token tidak valid atau telah kedaluwarsa. Muat ulang halaman (HTTP 403 Forbidden).', [
+                'csrf' => 'CSRF token verifikasi gagal atau hilang.',
+            ]);
+        }
+    }
+
+    public static function requireAdmin(): array
+    {
+        return self::requireRole(['admin']);
     }
 }
 

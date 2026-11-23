@@ -24,6 +24,7 @@ require_once TARAKOTA_API_DIR . '/Controllers/ScheduleController.php';
 require_once TARAKOTA_API_DIR . '/Controllers/TransactionController.php';
 require_once TARAKOTA_API_DIR . '/Controllers/BandController.php';
 require_once TARAKOTA_API_DIR . '/Controllers/AnalyticsController.php';
+require_once TARAKOTA_API_DIR . '/Controllers/UserController.php';
 
 Auth::startSession();
 
@@ -47,6 +48,13 @@ if ($route === '') {
     $route = '/';
 }
 
+// HTTP Security Headers (OWASP Top 10:2025 A02 - Security Misconfiguration Mitigation)
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
 try {
     if ($method === 'GET' && ($route === '/' || $route === '/health')) {
         $pdo = tarakota_db();
@@ -58,12 +66,30 @@ try {
         ]);
     }
 
-    // Admin authentication endpoints
-    if ($route === '/admin/login' && $method === 'POST') {
-        AuthController::login(tarakota_db());
+    // CSRF Token Provider (OWASP Top 10 A01 / CSRF Defense - Langkah D.5 Modul 13)
+    if (($route === '/csrf-token' || $route === '/auth/csrf') && $method === 'GET') {
+        Response::ok(200, [
+            'csrfToken' => Auth::csrfToken(),
+        ], 'CSRF token aktif.');
     }
-    if ($route === '/admin/logout' && $method === 'POST') {
+
+    // Authentication & Profile endpoints (Modul 12: Register/Login/Logout & /api/me)
+    if (($route === '/register' || $route === '/auth/register') && $method === 'POST') {
+        AuthController::register(tarakota_db());
+    }
+    if (($route === '/login' || $route === '/auth/login') && $method === 'POST') {
+        AuthController::login(tarakota_db(), false);
+    }
+    if (($route === '/logout' || $route === '/auth/logout' || $route === '/admin/logout') && $method === 'POST') {
         AuthController::logout();
+    }
+    if (($route === '/me' || $route === '/auth/me') && $method === 'GET') {
+        AuthController::me(tarakota_db());
+    }
+
+    // Admin authentication endpoints (Legacy support)
+    if ($route === '/admin/login' && $method === 'POST') {
+        AuthController::login(tarakota_db(), true);
     }
     if ($route === '/admin/session' && $method === 'GET') {
         AuthController::session();
@@ -101,6 +127,9 @@ try {
     if ($route === '/transactions' && $method === 'GET') {
         TransactionController::list(tarakota_db());
     }
+    if ($route === '/my-tickets' && $method === 'GET') {
+        TransactionController::myTickets(tarakota_db());
+    }
     if ($route === '/transactions/lookup' && $method === 'GET') {
         TransactionController::lookup(tarakota_db());
     }
@@ -109,6 +138,9 @@ try {
     }
     if (preg_match('#^/transactions/([A-Za-z0-9_-]+)$#', $route, $m) && $method === 'GET') {
         TransactionController::show(tarakota_db(), $m[1]);
+    }
+    if (preg_match('#^/transactions/([A-Za-z0-9_-]+)/proof$#', $route, $m) && $method === 'POST') {
+        TransactionController::uploadProof(tarakota_db(), $m[1]);
     }
     if (preg_match('#^/transactions/([A-Za-z0-9_-]+)/verify$#', $route, $m) && $method === 'PATCH') {
         TransactionController::verify(tarakota_db(), $m[1]);
@@ -131,6 +163,17 @@ try {
     // Analytics summary endpoint
     if ($route === '/analytics/summary' && $method === 'GET') {
         AnalyticsController::summary(tarakota_db());
+    }
+
+    // User management endpoints (Admin Only)
+    if ($route === '/users' && $method === 'GET') {
+        UserController::list(tarakota_db());
+    }
+    if ($route === '/users' && $method === 'POST') {
+        UserController::create(tarakota_db());
+    }
+    if (preg_match('#^/users/(\d+)/status$#', $route, $m) && $method === 'PATCH') {
+        UserController::toggleStatus(tarakota_db(), (int) $m[1]);
     }
 
     Response::error(404, 'Endpoint API tidak ditemukan.');

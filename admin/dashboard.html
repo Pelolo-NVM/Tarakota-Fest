@@ -52,6 +52,10 @@
               <span>4. Kurasi Band</span>
               <span class="admin-nav-count" id="badge-pending-bands">0</span>
             </button>
+            <button type="button" class="admin-nav-btn" data-admin-tab="users" aria-current="false">
+              <span>5. Manajemen User</span>
+              <span class="admin-nav-count" id="badge-total-users">0</span>
+            </button>
           </nav>
         </div>
 
@@ -184,6 +188,48 @@
           </div>
           <div class="pagination-bar" id="admin-bands-pagination" hidden></div>
         </section>
+
+        <!-- Menu 5: Manajemen User (Daftar Pengguna RBAC) -->
+        <section data-admin-panel="users" hidden>
+          <div class="table-toolbar">
+            <div>
+              <h2 style="margin-bottom:0.2rem;">Daftar Pengguna &amp; Akun RBAC</h2>
+              <p style="margin:0; color:var(--color-ink-muted); font-size:var(--text-sm);">Kelola akun pengguna terdaftar, periksa role (admin vs user), dan daftarkan user baru dengan password hashing otomatis.</p>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:0.75rem;">
+              <div class="field-group" style="margin-bottom:0; min-width:200px;">
+                <label class="field-label" for="user-search-input">Cari Pengguna</label>
+                <input class="field-input" id="user-search-input" type="search" placeholder="Nama atau email...">
+              </div>
+              <div class="field-group" style="margin-bottom:0; min-width:150px;">
+                <label class="field-label" for="user-role-filter">Filter Role</label>
+                <select class="field-select" id="user-role-filter">
+                  <option value="ALL">Semua Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="user">User</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-primary" id="btn-add-user-modal">+ Tambah User Baru</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nama Lengkap</th>
+                  <th>Email</th>
+                  <th>Role Akses</th>
+                  <th>Status Akun</th>
+                  <th>Terdaftar Sejak</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-bar" id="admin-users-pagination" hidden></div>
+        </section>
       </main>
     </div>
   </div>
@@ -308,8 +354,44 @@
     </div>
   </div>
 
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/components.js"></script>
-  <script src="../assets/js/pages/admin-dashboard.js"></script>
+  <!-- Modal Tambah User Baru -->
+  <div class="modal-backdrop" id="user-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="user-modal-title" hidden>
+    <div class="modal-card" style="max-width:480px;">
+      <div class="modal-header">
+        <h2 id="user-modal-title" style="margin:0;">Tambah User / Admin Baru</h2>
+        <button type="button" class="modal-close-btn" id="user-modal-close" aria-label="Tutup modal user">&times;</button>
+      </div>
+      <div id="user-form-error" class="alert-box alert-box--error" role="alert" hidden></div>
+      <form id="admin-user-create-form" novalidate>
+        <div class="field-group">
+          <label class="field-label" for="new-user-name">Nama Lengkap</label>
+          <input class="field-input" id="new-user-name" name="nama" type="text" required placeholder="Contoh: Panitia Ticketing">
+          <span class="field-error" data-field-error="nama" hidden></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="new-user-email">Alamat Email</label>
+          <input class="field-input" id="new-user-email" name="email" type="email" required placeholder="staff@tarakota.id">
+          <span class="field-error" data-field-error="email" hidden></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="new-user-pass">Kata Sandi Awal (Di-hash dengan BCrypt)</label>
+          <input class="field-input" id="new-user-pass" name="password" type="password" required placeholder="Minimal 6 karakter">
+          <span class="field-error" data-field-error="password" hidden></span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="new-user-role">Role Otorisasi</label>
+          <select class="field-select" id="new-user-role" name="role">
+            <option value="user">User (Pengunjung / Pembeli Tiket)</option>
+            <option value="admin">Admin (Pengelola Festival)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Daftarkan User Baru</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/api.js?v=20261118"></script>
+  <script src="../assets/js/components.js?v=20261118"></script>
+  <script src="../assets/js/pages/admin-dashboard.js?v=20261118"></script>
 </body>
 </html>

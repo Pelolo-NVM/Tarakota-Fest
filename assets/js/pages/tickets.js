@@ -31,6 +31,40 @@
     var lookupInput = document.getElementById('lookup-query');
     var lookupResultBox = document.getElementById('ticket-lookup-result');
 
+    async function syncAuthBanner() {
+      var statusEl = document.getElementById('pemesanan-auth-status');
+      var descEl = document.getElementById('pemesanan-auth-desc');
+      var actionsEl = document.getElementById('pemesanan-auth-actions');
+      if (!statusEl || !actionsEl) return;
+
+      try {
+        var res = await API.auth.getProfile();
+        if (res.ok && res.data) {
+          var u = res.data;
+          statusEl.innerHTML = '👤 Halo, ' + UI.escapeHtml(u.nama) + '!';
+          if (descEl) descEl.textContent = 'Akun terhubung (' + u.email + '). Data Anda akan otomatis terisi saat memilih tiket.';
+          actionsEl.innerHTML =
+            '<a href="tiket-saya.html" class="btn btn-primary btn-sm">Buka Tiket Saya</a>' +
+            '<button type="button" class="btn btn-ghost btn-sm" id="btn-banner-logout">Ganti Akun</button>';
+          var bOut = document.getElementById('btn-banner-logout');
+          if (bOut) {
+            bOut.addEventListener('click', async function () {
+              await API.auth.logout();
+              window.location.reload();
+            });
+          }
+        } else {
+          statusEl.textContent = 'Belum Masuk Akun?';
+          if (descEl) descEl.innerHTML = 'Daftar akun baru atau masuk untuk menikmati fitur auto-fill formulir pemesanan dan memantau E-Pass tiket Anda di halaman <strong>Tiket Saya</strong>.';
+          actionsEl.innerHTML =
+            '<a href="register.html" class="btn btn-secondary btn-sm">Daftar User Baru</a>' +
+            '<a href="login.html" class="btn btn-primary btn-sm">Masuk Akun</a>';
+        }
+      } catch (_e) {}
+    }
+    syncAuthBanner();
+    global.addEventListener('tarakota_auth_change', syncAuthBanner);
+
     var activeEvent = null;
     var selectedProofFile = null;
     var currentPage = 1;
@@ -66,7 +100,7 @@
       }
     }
 
-    function openCheckoutModal(evtObj, triggerBtn) {
+    async function openCheckoutModal(evtObj, triggerBtn) {
       activeEvent = evtObj;
       if (!checkoutForm) return;
       checkoutForm.reset();
@@ -86,6 +120,17 @@
         qtyInput.max = String(Math.min(10, evtObj.remainingQuota));
       }
       updateTotalPreview();
+
+      try {
+        var profileRes = await API.auth.getProfile();
+        if (profileRes.ok && profileRes.data) {
+          var nameField = document.getElementById('checkout-buyer-name');
+          var emailField = document.getElementById('checkout-buyer-email');
+          if (nameField && profileRes.data.nama) nameField.value = profileRes.data.nama;
+          if (emailField && profileRes.data.email) emailField.value = profileRes.data.email;
+        }
+      } catch (_e) {}
+
       modalCtrl.open(triggerBtn);
     }
 
@@ -244,7 +289,7 @@
 
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.textContent = 'Memvalidasi Transaksi...';
+          submitBtn.textContent = 'Mengunci Kuota...';
         }
 
         var formData = new FormData(checkoutForm);
@@ -256,7 +301,7 @@
 
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Kirim Pesanan & Bukti Bayar';
+          submitBtn.textContent = 'Kunci Kuota & Lanjut ke Pembayaran';
         }
 
         if (!res.ok) {
@@ -277,15 +322,50 @@
         modalCtrl.close();
         var trx = res.data;
         if (resultBanner) {
-          resultBanner.className = 'alert-box alert-box--pending';
+          resultBanner.className = 'hold-timer-card';
           resultBanner.hidden = false;
+          var secLeft = trx.remainingSeconds || 900;
           resultBanner.innerHTML =
-            '<strong>Pesanan Diterima (HTTP 201) - Status Tiket Pending</strong>' +
-            '<p style="margin:0.4rem 0 0;">Kode Transaksi: <span class="mono"><strong>' + UI.escapeHtml(trx.id) + '</strong></span> | Event: ' + UI.escapeHtml(trx.eventTitle) + ' (' + trx.qty + ' tiket, Total ' + UI.formatRupiah(trx.totalAmount) + ').</p>' +
-            '<p style="margin:0.35rem 0 0; font-size:var(--text-sm);">Data transaksi dan bukti bayar telah tersimpan di server dan dikirim ke Portal Admin untuk diverifikasi.</p>';
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">' +
+              '<div>' +
+                '<span class="status-badge status-badge--amber" style="font-size:10px;">INVENTORY RESERVED</span>' +
+                '<h3 style="margin:0.35rem 0 0.1rem; font-size:var(--text-xl);">Kuota Tiket Berhasil Dikunci (Hold 15 Menit)!</h3>' +
+                '<div class="mono" style="font-size:var(--text-sm); color:var(--color-ink-muted);">Kode Transaksi: <strong>' + UI.escapeHtml(trx.id) + '</strong> | Event: ' + UI.escapeHtml(trx.eventTitle) + ' (' + trx.qty + ' tiket)</div>' +
+              '</div>' +
+              '<div class="countdown-box" id="banner-hold-timer">⏱ ' + Math.floor(secLeft / 60) + ':' + (secLeft % 60 < 10 ? '0' : '') + (secLeft % 60) + '</div>' +
+            '</div>' +
+            '<div class="unique-amount-highlight">' +
+              '<span style="font-size:var(--text-xs); font-weight:700; color:var(--color-ink-muted);">TOTAL NOMINAL TRANSFER TEPAT</span>' +
+              '<span class="amount-val">' + UI.formatRupiah(trx.totalAmount) + '</span>' +
+              '<span class="amount-note">Termasuk 3 digit kode unik: <strong>+' + (trx.uniqueCode || 0) + '</strong> agar pembayaran Anda tidak tertukar dengan pembeli lain.</span>' +
+              '<div style="margin-top:0.4rem; font-size:var(--text-xs);">' +
+                'Transfer ke: <strong>Bank Mandiri 140-002-026-8888 a.n. Yayasan Tarakota Fest</strong>' +
+              '</div>' +
+            '</div>' +
+            '<div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem; align-items:center;">' +
+              '<a href="tiket-saya.html" class="btn btn-primary">Buka Dompet E-Ticket (Tiket Saya)</a>' +
+              (trx.hasProof ? '<span class="status-badge status-badge--mint">Bukti transfer terunggah</span>' : '<span style="font-size:var(--text-xs); color:var(--color-ink-muted);">Bukti bayar dapat diunggah di menu Tiket Saya sebelum 15 menit habis.</span>') +
+            '</div>';
+
+          var timerBox = document.getElementById('banner-hold-timer');
+          if (timerBox) {
+            var bInterval = setInterval(function () {
+              secLeft -= 1;
+              if (secLeft <= 0) {
+                clearInterval(bInterval);
+                timerBox.textContent = '⏱ WAKTU HABIS';
+                timerBox.classList.add('is-urgent');
+              } else {
+                var m = Math.floor(secLeft / 60);
+                var s = secLeft % 60;
+                timerBox.textContent = '⏱ ' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                if (secLeft < 180) timerBox.classList.add('is-urgent');
+              }
+            }, 1000);
+          }
           resultBanner.focus();
         }
-        UI.announce('Tiket berhasil dipesan dengan status pending. Kode transaksi ' + trx.id);
+        UI.announce('Tiket berhasil di-hold selama 15 menit. Kode transaksi ' + trx.id);
         renderCatalog();
       });
     }

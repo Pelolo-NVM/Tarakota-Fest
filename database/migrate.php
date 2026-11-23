@@ -41,4 +41,18 @@ foreach ($statements as $stmt) {
     $pdo->exec($stmt);
 }
 
+// Ensure incremental migration for existing databases
+try {
+    $cols = $pdo->query("SHOW COLUMNS FROM `transaksi_tiket`")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('kode_unik', $cols, true)) {
+        $pdo->exec("ALTER TABLE `transaksi_tiket` ADD COLUMN `kode_unik` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `total_harga`");
+    }
+    if (!in_array('expires_at', $cols, true)) {
+        $pdo->exec("ALTER TABLE `transaksi_tiket` ADD COLUMN `expires_at` TIMESTAMP NULL AFTER `status`");
+    }
+    $pdo->exec("ALTER TABLE `transaksi_tiket` MODIFY COLUMN `status` ENUM('pending', 'paid', 'cancelled', 'expired') NOT NULL DEFAULT 'pending'");
+} catch (Throwable $e) {
+    // Table schema already handled by schema.sql
+}
+
 echo "Migration and seed completed successfully.\n";

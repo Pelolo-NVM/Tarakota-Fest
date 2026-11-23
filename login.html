@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk Akun Pengunjung - Tarakota Fest 2026</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/sticker-star-yellow.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/public.css">
+</head>
+<body data-page="login">
+  <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main-content" class="public-main" tabindex="-1">
+    <section class="page-header-band">
+      <div class="container">
+        <span class="status-badge status-badge--mint">Autentikasi Pengunjung</span>
+        <h1 style="margin-top:0.5rem;">Masuk ke Akun Anda</h1>
+        <p>Akses dompet tiket, lihat E-Pass QR konser, dan pantau status verifikasi pembayaran Anda.</p>
+      </div>
+      <img class="page-header-sticker" src="assets/images/sticker-starfish.svg" alt="" width="76" height="72" aria-hidden="true">
+    </section>
+
+    <section class="section-block">
+      <div class="container" style="max-width:520px;">
+        <div class="form-card" style="box-shadow:var(--shadow-sticker);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:2px dashed var(--color-border-ink); padding-bottom:1rem;">
+            <div>
+              <span class="status-badge status-badge--lilac">Login Penonton</span>
+              <h2 style="margin:0.35rem 0 0; font-size:var(--text-xl);">Masuk Akun</h2>
+            </div>
+            <a href="register.html" class="btn btn-secondary btn-sm" style="font-size:var(--text-xs);">Daftar Akun Baru &rarr;</a>
+          </div>
+
+          <div id="login-api-error" class="alert-box alert-box--error" role="alert" hidden></div>
+          <div id="login-api-success" class="alert-box alert-box--mint" role="status" hidden></div>
+
+          <form id="standalone-login-form" novalidate>
+            <div class="field-group">
+              <label class="field-label" for="login-email">Alamat Email</label>
+              <input class="field-input" id="login-email" name="email" type="email" required placeholder="raka.pratama@example.com" autocomplete="email">
+              <span class="field-error" data-field-error="email" hidden></span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="login-pass">Kata Sandi</label>
+              <input class="field-input" id="login-pass" name="password" type="password" required placeholder="tarakota2026" autocomplete="current-password">
+              <span class="field-error" data-field-error="password" hidden></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="btn-submit-login" style="width:100%; margin-top:0.5rem; font-size:var(--text-base);">
+              Masuk Sekarang
+            </button>
+          </form>
+
+          <div style="margin-top:1.5rem; padding-top:1rem; border-top:1.5px solid rgba(41, 37, 36, 0.1); text-align:center;">
+            <p style="margin:0 0 0.5rem; font-size:var(--text-xs); color:var(--color-ink-muted);">Untuk penilaian praktikum / pengujian dosen:</p>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-demo-login-submit" style="border:1.5px dashed var(--color-border-ink); font-size:var(--text-xs); width:100%;">
+              ⚡ Masuk Otomatis Akun Demo (Raka Pratama)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="assets/js/api.js?v=20261118"></script>
+  <script src="assets/js/components.js?v=20261118"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var UI = window.TarakotaUI;
+      var API = window.TarakotaAPI;
+      UI.mountPublicChrome('login');
+
+      var form = document.getElementById('standalone-login-form');
+      var errorBox = document.getElementById('login-api-error');
+      var successBox = document.getElementById('login-api-success');
+      var submitBtn = document.getElementById('btn-submit-login');
+      var demoBtn = document.getElementById('btn-demo-login-submit');
+
+      async function executeLogin(email, pass) {
+        UI.clearFieldErrors(form);
+        if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
+        if (successBox) { successBox.hidden = true; successBox.textContent = ''; }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Memverifikasi Sesi...';
+        }
+
+        var res = await API.auth.userLogin(email, pass);
+
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Masuk Sekarang';
+        }
+
+        if (!res.ok) {
+          if (errorBox) {
+            errorBox.textContent = res.message || 'Login gagal. Periksa kembali email dan kata sandi Anda.';
+            errorBox.hidden = false;
+          }
+          return;
+        }
+
+        if (successBox) {
+          successBox.innerHTML =
+            '<strong>Login Berhasil!</strong>' +
+            '<p style="margin:0.25rem 0 0;">Selamat datang, <strong>' + UI.escapeHtml(res.data.name || res.data.nama) + '</strong>. Mengalihkan ke Dompet Tiket Saya...</p>';
+          successBox.hidden = false;
+        }
+
+        window.dispatchEvent(new CustomEvent('tarakota_auth_change', { detail: res.data }));
+        setTimeout(function () {
+          window.location.href = 'tiket-saya.html';
+        }, 1200);
+      }
+
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var email = (form.querySelector('[name="email"]').value || '').trim();
+          var pass = (form.querySelector('[name="password"]').value || '').trim();
+          if (!email || !pass) {
+            if (errorBox) {
+              errorBox.textContent = 'Email dan kata sandi wajib diisi.';
+              errorBox.hidden = false;
+            }
+            return;
+          }
+          executeLogin(email, pass);
+        });
+      }
+
+      if (demoBtn) {
+        demoBtn.addEventListener('click', function () {
+          document.getElementById('login-email').value = 'raka.pratama@example.com';
+          document.getElementById('login-pass').value = 'tarakota2026';
+          executeLogin('raka.pratama@example.com', 'tarakota2026');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

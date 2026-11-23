@@ -80,6 +80,19 @@
     var lastTransactions = [];
     var lastBands = [];
 
+    // Menu 5: User Management
+    var usersTableBody = document.getElementById('admin-users-tbody');
+    var userSearchInput = document.getElementById('user-search-input');
+    var userRoleFilter = document.getElementById('user-role-filter');
+    var btnAddUserModal = document.getElementById('btn-add-user-modal');
+    var badgeTotalUsers = document.getElementById('badge-total-users');
+    var userModalCtrl = UI.createModalController('user-modal-backdrop');
+    var userModalClose = document.getElementById('user-modal-close');
+    var userCreateForm = document.getElementById('admin-user-create-form');
+    var userFormError = document.getElementById('user-form-error');
+    var usersPaginationEl = document.getElementById('admin-users-pagination');
+    var usersPage = 1;
+
     var eventsPaginationEl = document.getElementById('admin-events-pagination');
     var trxPaginationEl = document.getElementById('admin-trx-pagination');
     var bandsPaginationEl = document.getElementById('admin-bands-pagination');
@@ -88,7 +101,8 @@
       overview: 'Ringkasan Analitik Festival',
       events: 'Manajemen Event & Kuota (CRUD)',
       transactions: 'Verifikasi Transaksi & Bukti Transfer',
-      bands: 'Manajemen Kurasi Band Audisi'
+      bands: 'Manajemen Kurasi Band Audisi',
+      users: 'Manajemen User & Akun RBAC'
     };
 
     function handleAuthLoss(res) {
@@ -471,12 +485,80 @@
       curateModalCtrl.open(triggerBtn);
     }
 
+    async function renderUsersTable() {
+      if (!usersTableBody) return;
+      var role = userRoleFilter ? userRoleFilter.value : 'ALL';
+      var search = userSearchInput ? userSearchInput.value : '';
+      var res = await API.users.list(role, search, usersPage, ADMIN_PAGE_LIMIT);
+      if (handleAuthLoss(res) || !res.ok) return;
+
+      var items = (res.data && res.data.items) || [];
+      var pagination = res.data && res.data.pagination;
+      if (badgeTotalUsers && pagination) {
+        badgeTotalUsers.textContent = String(pagination.total);
+      }
+
+      UI.renderPagination(usersPaginationEl, pagination, function (nextPage) {
+        usersPage = nextPage;
+        renderUsersTable();
+      });
+
+      if (items.length === 0) {
+        usersTableBody.innerHTML = '<tr><td colspan="7">Belum ada pengguna terdaftar yang cocok dengan filter.</td></tr>';
+        return;
+      }
+
+      usersTableBody.innerHTML = items.map(function (u) {
+        var roleBadge = u.role === 'admin'
+          ? '<span class="status-badge status-badge--mint">ADMIN</span>'
+          : '<span class="status-badge status-badge--lilac">USER</span>';
+        var statusBadge = u.isActive
+          ? '<span class="status-badge status-badge--mint" style="font-size:11px;">Aktif</span>'
+          : '<span class="status-badge status-badge--red" style="font-size:11px;">Nonaktif</span>';
+        var btnToggleText = u.isActive ? 'Nonaktifkan' : 'Aktifkan';
+        var btnCls = u.isActive ? 'btn-danger' : 'btn-secondary';
+
+        return (
+          '<tr>' +
+            '<td class="mono">#' + u.id + '</td>' +
+            '<td><strong>' + UI.escapeHtml(u.nama) + '</strong></td>' +
+            '<td class="mono">' + UI.escapeHtml(u.email) + '</td>' +
+            '<td>' + roleBadge + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td style="font-size:var(--text-xs); color:var(--color-ink-muted);">' + UI.escapeHtml(UI.formatDateTime(u.createdAt)) + '</td>' +
+            '<td>' +
+              '<button type="button" class="btn ' + btnCls + ' btn-sm" data-toggle-user="' + u.id + '" style="font-size:var(--text-xs);">' +
+                btnToggleText +
+              '</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      var toggleBtns = usersTableBody.querySelectorAll('[data-toggle-user]');
+      for (var i = 0; i < toggleBtns.length; i += 1) {
+        toggleBtns[i].addEventListener('click', async function () {
+          var uid = this.getAttribute('data-toggle-user');
+          if (confirm('Ubah status keaktifan user ID #' + uid + '?')) {
+            var updRes = await API.users.toggleStatus(uid);
+            if (!updRes.ok) {
+              alert(updRes.message || 'Gagal mengubah status user.');
+              return;
+            }
+            UI.announce('Status user diperbarui.');
+            renderUsersTable();
+          }
+        });
+      }
+    }
+
     async function refreshAll() {
       await Promise.all([
         renderOverview(),
         renderEventsTable(),
         renderTransactionsTable(),
-        renderBandsTable()
+        renderBandsTable(),
+        renderUsersTable()
       ]);
     }
 
@@ -651,6 +733,60 @@
     if (curateRejectBtn) {
       curateRejectBtn.addEventListener('click', function () {
         submitCurateDecision('rejected', null, 'Band ditolak pada tahap kurasi (rejected).');
+      });
+    }
+
+    if (btnAddUserModal) {
+      btnAddUserModal.addEventListener('click', function () {
+        if (userCreateForm) userCreateForm.reset();
+        UI.clearFieldErrors(userCreateForm);
+        if (userFormError) { userFormError.hidden = true; userFormError.textContent = ''; }
+        userModalCtrl.open(this);
+      });
+    }
+
+    if (userModalClose) {
+      userModalClose.addEventListener('click', userModalCtrl.close);
+    }
+
+    if (userCreateForm) {
+      userCreateForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        UI.clearFieldErrors(userCreateForm);
+        if (userFormError) userFormError.hidden = true;
+
+        var nama = (userCreateForm.querySelector('[name="nama"]').value || '').trim();
+        var email = (userCreateForm.querySelector('[name="email"]').value || '').trim();
+        var pass = (userCreateForm.querySelector('[name="password"]').value || '').trim();
+        var role = (userCreateForm.querySelector('[name="role"]').value || 'user').trim();
+
+        var res = await API.users.create({ nama: nama, email: email, password: pass, role: role });
+        if (!res.ok) {
+          if (userFormError) {
+            userFormError.textContent = res.message || 'Gagal membuat user baru.';
+            userFormError.hidden = false;
+          }
+          if (res.errors) UI.applyFieldErrors(userCreateForm, res.errors);
+          return;
+        }
+
+        userModalCtrl.close();
+        UI.announce('User baru berhasil ditambahkan.');
+        renderUsersTable();
+      });
+    }
+
+    if (userSearchInput) {
+      userSearchInput.addEventListener('input', function () {
+        usersPage = 1;
+        renderUsersTable();
+      });
+    }
+
+    if (userRoleFilter) {
+      userRoleFilter.addEventListener('change', function () {
+        usersPage = 1;
+        renderUsersTable();
       });
     }
 

@@ -1,19 +1,33 @@
-# Varian file env lokal/produksi lain (tetap izinkan .env.example)
+# Environment secrets (jangan pernah commit file kredensial nyata)
+.env
 .env.*
+.env.local
+.env.production
 !.env.example
+
+# Direktori dan file vendor / dependencies
+vendor/
+node_modules/
+composer.phar
+
+# Uploads dinamis pengguna (kecualikan placeholder gitkeep)
+uploads/proofs/*
+!uploads/proofs/.gitkeep
+uploads/posters/*
+!uploads/posters/.gitkeep
+
+# File sementara, log, backup, session
+*.log
+*.tmp
+*.bak
+sess_*
 
 # Pengaturan IDE / Editor & Windows lokal
 .vscode/
 .idea/
 *.swp
 desktop.ini
+Thumbs.db
 
-# File sementara, backup, session, atau dependensi jika ada
-*.tmp
-*.bak
-sess_*
-vendor/
-node_modules/
-
-# Environment Thunder Client jika menyimpan kredensial/cookie lokal
+# Environment testing lokal
 thunder-tests/thunderEnvironment.json
